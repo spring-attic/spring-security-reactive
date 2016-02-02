@@ -5,14 +5,19 @@ import java.util.Base64;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import org.springframework.web.server.WebSession;
 
 import reactor.core.publisher.Mono;
 
 public class HttpBasicFilter implements WebFilter {
+
+	HttpSessionSecurityContextRepository repository = new HttpSessionSecurityContextRepository();
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -23,21 +28,20 @@ public class HttpBasicFilter implements WebFilter {
 			String credentials = authorization.substring("Basic ".length(), authorization.length());
 			byte[] decodedCredentials = Base64.getDecoder().decode(credentials);
 			String decodedAuthz = new String(decodedCredentials);
-			String[] userPassword = decodedAuthz.split(":");
+			String[] userParts = decodedAuthz.split(":");
+			String username = userParts[0];
+			String password = userParts[1];
 
-			if(userPassword.length == 2 && userPassword[0].equals(userPassword[1])) {
-				WebSession webSession = exchange.getSession().get();
-				webSession.getAttributes().put("USER", userPassword[0]);
-//				webSession.save();
+			if(userParts.length == 2 && username.equals(password)) {
+				SecurityContext context = new SecurityContextImpl();
+				context.setAuthentication(new UsernamePasswordAuthenticationToken(username, password, AuthorityUtils.createAuthorityList("ROLE_USER")));
+				repository.save(exchange, context);
 				return chain.filter(exchange);
 			}
 		}
-		WebSession webSession = exchange.getSession().get();
-		if(webSession.isStarted()) {
-			String username = (String) webSession.getAttributes().get("USER");
-			if(username != null) {
-				return chain.filter(exchange);
-			}
+		SecurityContext context = repository.load(exchange);
+		if(context != null) {
+			return chain.filter(exchange);
 		}
 		response.setStatusCode(HttpStatus.UNAUTHORIZED);
 		response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");

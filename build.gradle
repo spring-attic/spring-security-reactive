@@ -14,6 +14,7 @@ apply plugin: 'propdeps-maven'
 
 ext {
 	reactorVersion = '2.5.0.BUILD-SNAPSHOT'
+	springSecurityVersion = '4.0.2.RELEASE'
 	springVersion = '4.2.3.RELEASE'
 }
 
@@ -35,6 +36,7 @@ repositories {
 }
 
 dependencies {
+	compile "org.springframework.security:spring-security-core:$springSecurityVersion"
 	compile "org.springframework.reactive:spring-reactive:0.1.0.BUILD-SNAPSHOT"
 	compile "com.fasterxml.jackson.core:jackson-databind:2.6.1"
 
