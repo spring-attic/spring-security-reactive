@@ -59,7 +59,6 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
-
 	@Test
 	public void sessionWorks() throws Exception {
 		URI url = new URI("http://localhost:" + port + "/people");
@@ -76,6 +75,17 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.build();
 		result = rest.exchange(request, String.class);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	public void me() throws Exception {
+		URI url = new URI("http://localhost:" + port + "/me");
+		RequestEntity<Void> request = RequestEntity
+				.get(url)
+				.header("Authorization", authorization())
+				.build();
+		ResponseEntity<String> result = rest.exchange(request, String.class);
+		assertThat(result.getBody()).isEqualTo("rob");
 	}
 
 	private String cookieHeader(ResponseEntity<?> entity) {

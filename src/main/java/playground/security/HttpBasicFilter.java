@@ -9,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -34,7 +36,8 @@ public class HttpBasicFilter implements WebFilter {
 
 			if(userParts.length == 2 && username.equals(password)) {
 				SecurityContext context = new SecurityContextImpl();
-				context.setAuthentication(new UsernamePasswordAuthenticationToken(username, password, AuthorityUtils.createAuthorityList("ROLE_USER")));
+				UserDetails ud = new User(username, password, AuthorityUtils.createAuthorityList("ROLE_USER"));
+				context.setAuthentication(new UsernamePasswordAuthenticationToken(ud, password, ud.getAuthorities()));
 				repository.save(exchange, context);
 				return chain.filter(exchange);
 			}

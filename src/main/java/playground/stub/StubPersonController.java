@@ -17,6 +17,8 @@
 package playground.stub;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -56,4 +58,8 @@ public class StubPersonController {
 		return this.repository.findById("1");
 	}
 
+	@RequestMapping("/me")
+	public String me(@AuthenticationPrincipal UserDetails user) {
+		return user.getUsername();
+	}
 }

@@ -47,6 +47,7 @@ import org.springframework.web.reactive.method.annotation.RequestMappingHandlerM
 import org.springframework.web.reactive.method.annotation.ResponseBodyResultHandler;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
+import playground.security.AuthenticationPrincipalArgumentResolver;
 import playground.security.HttpBasicFilter;
 
 /**
@@ -99,9 +100,11 @@ public class Application {
 	}
 
 	@Bean
-	RequestMappingHandlerAdapter handlerAdapter() {
+	RequestMappingHandlerAdapter handlerAdapter() throws Exception {
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setConversionService(conversionService());
+		handlerAdapter.afterPropertiesSet();
+		handlerAdapter.getArgumentResolvers().add(new AuthenticationPrincipalArgumentResolver());
 		return handlerAdapter;
 	}
 
