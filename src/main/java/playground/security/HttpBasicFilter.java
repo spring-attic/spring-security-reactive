@@ -1,6 +1,7 @@
 package playground.security;
 
 import java.util.Base64;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -38,16 +39,23 @@ public class HttpBasicFilter implements WebFilter {
 				SecurityContext context = new SecurityContextImpl();
 				UserDetails ud = new User(username, password, AuthorityUtils.createAuthorityList("ROLE_USER"));
 				context.setAuthentication(new UsernamePasswordAuthenticationToken(ud, password, ud.getAuthorities()));
-				repository.save(exchange, context);
-				return chain.filter(exchange);
+				return repository
+					.save(exchange, context)
+					.after( () ->{
+						return chain.filter(exchange);
+					});
 			}
 		}
-		SecurityContext context = repository.load(exchange);
-		if(context != null) {
-			return chain.filter(exchange);
-		}
-		response.setStatusCode(HttpStatus.UNAUTHORIZED);
-		response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
-		return Mono.empty();
+		Mono<Optional<SecurityContext>> context = repository.load(exchange);
+
+		return context
+			.then(sc -> {
+				if(!sc.isPresent()) {
+					response.setStatusCode(HttpStatus.UNAUTHORIZED);
+					response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
+					return  Mono.empty();
+				}
+				return chain.filter(exchange);
+			});
 	}
 }

@@ -1,22 +1,26 @@
 package playground.security;
 
+import java.util.Optional;
+
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebSession;
+
+import reactor.core.publisher.Mono;
 
 public class HttpSessionSecurityContextRepository {
 	final String SESSION_ATTR = "USER";
 
-	public void save(ServerWebExchange exchange, SecurityContext context) {
-		WebSession webSession = exchange.getSession().get();
-		webSession.getAttributes().put(SESSION_ATTR, context);
+	public Mono<Void> save(ServerWebExchange exchange, SecurityContext context) {
+		return exchange.getSession().map(session -> {
+			session.getAttributes().put(SESSION_ATTR, context);
+			return session;
+		}).after();
 	}
 
-	public SecurityContext load(ServerWebExchange exchange) {
-		WebSession webSession = exchange.getSession().get();
-		if(!webSession.isStarted()) {
-			return null;
-		}
-		return (SecurityContext) webSession.getAttributes().get(SESSION_ATTR);
+	public Mono<Optional<SecurityContext>> load(ServerWebExchange exchange) {
+		return exchange.getSession().map( session -> {
+			SecurityContext context = (SecurityContext) session.getAttributes().get(SESSION_ATTR);
+			return context == null ? Optional.empty() : Optional.of(context);
+		});
 	}
 }

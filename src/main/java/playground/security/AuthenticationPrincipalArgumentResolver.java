@@ -3,7 +3,6 @@ package playground.security;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.reactive.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -19,9 +18,13 @@ public class AuthenticationPrincipalArgumentResolver implements HandlerMethodArg
 
 	@Override
 	public Mono<Object> resolveArgument(MethodParameter parameter, ServerWebExchange exchange) {
-		SecurityContext context = repository.load(exchange);
-		Authentication authentication = context == null ? null : context.getAuthentication();
-		return Mono.just(authentication == null ? null : authentication.getPrincipal());
+		return repository.load(exchange).then( sc -> {
+			if(!sc.isPresent()) {
+				return Mono.empty();
+			}
+			Authentication authentication = sc.get().getAuthentication();
+			return Mono.just(authentication.getPrincipal());
+		});
 	}
 
 }
