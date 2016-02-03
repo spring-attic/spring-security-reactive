@@ -19,11 +19,8 @@ public class AuthenticationPrincipalArgumentResolver implements HandlerMethodArg
 	@Override
 	public Mono<Object> resolveArgument(MethodParameter parameter, ServerWebExchange exchange) {
 		return repository.load(exchange).then( sc -> {
-			if(!sc.isPresent()) {
-				return Mono.empty();
-			}
-			Authentication authentication = sc.get().getAuthentication();
-			return Mono.just(authentication.getPrincipal());
+			Authentication authentication = sc.getAuthentication();
+			return authentication == null ? Mono.empty() : Mono.just(authentication.getPrincipal());
 		});
 	}
 
