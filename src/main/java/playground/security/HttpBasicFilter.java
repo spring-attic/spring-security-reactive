@@ -51,13 +51,15 @@ public class HttpBasicFilter implements WebFilter {
 		return context
 			.where(c -> {
 				Authentication authentication = c.getAuthentication();
-				return authentication == null || !authentication.isAuthenticated();
+				return authentication != null && authentication.isAuthenticated();
 			})
-			.then(sc -> {
+			.otherwiseIfEmpty(Mono.defer(() -> {
 				response.setStatusCode(HttpStatus.UNAUTHORIZED);
 				response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
-				return  Mono.empty();
-			})
-			.after( () -> chain.filter(exchange));
+				return Mono.empty();
+			}))
+			.then(sc -> {
+				return chain.filter(exchange);
+			});
 	}
 }
