@@ -15,12 +15,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.server.WebSession;
 
+import playground.Person;
+import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.Mono;
 
 public class HttpBasicFilter implements WebFilter {
 
-	HttpSessionSecurityContextRepository repository = new HttpSessionSecurityContextRepository();
+	HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+
+
+	UserDetailsRepository userDetailsRepository = new UserDetailsRepository();
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -32,21 +39,35 @@ public class HttpBasicFilter implements WebFilter {
 			byte[] decodedCredentials = Base64.getDecoder().decode(credentials);
 			String decodedAuthz = new String(decodedCredentials);
 			String[] userParts = decodedAuthz.split(":");
+
+			if(userParts.length != 2) {
+				return withSession(exchange, chain);
+			}
+
 			String username = userParts[0];
 			String password = userParts[1];
 
-			if(userParts.length == 2 && username.equals(password)) {
+			UserDetails user = userDetailsRepository.findByUsername(username).get();
+
+			if(user.getPassword().equals(password)) {
 				SecurityContext context = new SecurityContextImpl();
 				UserDetails ud = new User(username, password, AuthorityUtils.createAuthorityList("ROLE_USER"));
 				context.setAuthentication(new UsernamePasswordAuthenticationToken(ud, password, ud.getAuthorities()));
-				return repository
+				return securityContextRepository
 					.save(exchange, context)
 					.after( () ->{
 						return chain.filter(exchange);
 					});
 			}
 		}
-		Mono<SecurityContext> context = repository.load(exchange);
+
+		return withSession(exchange, chain);
+	}
+
+	private Mono<Void> withSession(ServerWebExchange exchange, WebFilterChain chain) {
+
+		ServerHttpResponse response = exchange.getResponse();
+		Mono<SecurityContext> context = securityContextRepository.load(exchange);
 
 		return context
 			.where(c -> {
