@@ -27,7 +27,6 @@ import playground.Person;
 import playground.repository.ReactiveRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.rx.Stream;
 
 /**
  * @author Rob Winch
