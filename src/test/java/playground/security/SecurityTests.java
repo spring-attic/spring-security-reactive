@@ -56,6 +56,42 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 	}
 
 	@Test
+	public void basicMissingUser401() throws Exception {
+		URI url = new URI("http://localhost:" + port + "/people");
+		RequestEntity<Void> request = RequestEntity
+				.get(url)
+				.header("Authorization", authorization("missing-user","password"))
+				.build();
+		assertThatThrownBy( () -> rest.exchange(request, String.class))
+			.isInstanceOf(HttpClientErrorException.class)
+			.hasMessage("401 Unauthorized");
+	}
+
+	@Test
+	public void basicInvalidPassword401() throws Exception {
+		URI url = new URI("http://localhost:" + port + "/people");
+		RequestEntity<Void> request = RequestEntity
+				.get(url)
+				.header("Authorization", authorization("rob","invalid"))
+				.build();
+		assertThatThrownBy( () -> rest.exchange(request, String.class))
+			.isInstanceOf(HttpClientErrorException.class)
+			.hasMessage("401 Unauthorized");
+	}
+
+	@Test
+	public void basicInvalidParts401() throws Exception {
+		URI url = new URI("http://localhost:" + port + "/people");
+		RequestEntity<Void> request = RequestEntity
+				.get(url)
+				.header("Authorization", authorization("no collon"))
+				.build();
+		assertThatThrownBy( () -> rest.exchange(request, String.class))
+			.isInstanceOf(HttpClientErrorException.class)
+			.hasMessage("401 Unauthorized");
+	}
+
+	@Test
 	public void sessionWorks() throws Exception {
 		URI url = new URI("http://localhost:" + port + "/people");
 		RequestEntity<Void> request = RequestEntity
@@ -88,8 +124,17 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 		return entity.getHeaders().getFirst("Set-Cookie");
 	}
 
+	private String authorization(String username, String password) {
+		String credentials = username+":"+password;
+		return authorization(credentials);
+	}
+
+	private String authorization(String credentials) {
+		String encodedCredentials =  Base64.getEncoder().encodeToString(credentials.getBytes(Charset.defaultCharset()));
+		return "Basic " + encodedCredentials;
+	}
+
 	private String authorization() {
-		String credentials =  Base64.getEncoder().encodeToString("rob:rob".getBytes(Charset.defaultCharset()));
-		return "Basic " + credentials;
+		return authorization("rob","rob");
 	}
 }
