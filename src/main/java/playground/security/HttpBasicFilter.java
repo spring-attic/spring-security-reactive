@@ -14,6 +14,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SchedulerGroup;
 
 public class HttpBasicFilter implements WebFilter {
 
@@ -42,6 +43,7 @@ public class HttpBasicFilter implements WebFilter {
 
 			return userDetailsRepository.findByUsername(username)
 				.where( u -> password.equals(u.getPassword()))
+				.publishOn(SchedulerGroup.io())
 				.otherwiseIfEmpty(Mono.defer(() -> {
 					response.setStatusCode(HttpStatus.UNAUTHORIZED);
 					response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
