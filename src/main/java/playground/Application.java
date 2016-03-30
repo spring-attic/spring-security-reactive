@@ -18,6 +18,7 @@ package playground;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,9 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.codec.Encoder;
 import org.springframework.core.codec.support.ByteBufferEncoder;
 import org.springframework.core.codec.support.JacksonJsonEncoder;
-import org.springframework.core.codec.support.JsonObjectEncoder;
 import org.springframework.core.codec.support.StringEncoder;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -118,9 +119,12 @@ public class Application {
 
 	@Bean
 	ResponseBodyResultHandler responseBodyResultHandler(DataBufferAllocator bufferAllocator) {
-		return new ResponseBodyResultHandler(Arrays.asList(
-				new ByteBufferEncoder(bufferAllocator), new StringEncoder(bufferAllocator),
-				new JacksonJsonEncoder(bufferAllocator, new JsonObjectEncoder(bufferAllocator))), conversionService());
+
+		List<Encoder<?>> encoders = Arrays.asList(new ByteBufferEncoder(),
+				new StringEncoder(), new JacksonJsonEncoder());
+		ResponseBodyResultHandler resultHandler = new ResponseBodyResultHandler(encoders, conversionService());
+		resultHandler.setOrder(1);
+		return resultHandler;
 	}
 
 	@Bean
