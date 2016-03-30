@@ -1,27 +1,32 @@
 package playground.security;
 
+import java.util.Arrays;
 import java.util.Base64;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SchedulerGroup;
 
 public class HttpBasicFilter implements WebFilter {
 
 	HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
 
-	UserDetailsRepository userDetailsRepository = new UserDetailsRepository();
+	RxAuthenticationManager authenticationManager = createAuthenticationManager();
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -41,23 +46,22 @@ public class HttpBasicFilter implements WebFilter {
 			String username = userParts[0];
 			String password = userParts[1];
 
-			return userDetailsRepository.findByUsername(username)
-				.where( u -> password.equals(u.getPassword()))
-				.publishOn(SchedulerGroup.io())
-				.otherwiseIfEmpty(Mono.defer(() -> {
-					response.setStatusCode(HttpStatus.UNAUTHORIZED);
-					response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
-					return Mono.empty();
-				}))
-				.then(user -> {
-					SecurityContext context = new SecurityContextImpl();
-					context.setAuthentication(new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities()));
-					return securityContextRepository
-						.save(exchange, context)
-						.after( () ->{
-							return chain.filter(exchange);
-						});
-				});
+			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
+
+			return authenticationManager.authenticate(token)
+					.then(authentication -> {
+						SecurityContext context = new SecurityContextImpl();
+						context.setAuthentication(authentication);
+						return securityContextRepository
+							.save(exchange, context)
+							.after( () ->{
+								return chain.filter(exchange);
+							});
+					})
+					.doOnError( e -> {
+						response.setStatusCode(HttpStatus.UNAUTHORIZED);
+						response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
+					});
 		}
 
 		return withSession(exchange, chain);
@@ -81,5 +85,14 @@ public class HttpBasicFilter implements WebFilter {
 			.then(sc -> {
 				return chain.filter(exchange);
 			});
+	}
+
+	private RxAuthenticationManager createAuthenticationManager() {
+		User rob = new User("rob","rob",AuthorityUtils.createAuthorityList("ROLE_USER"));
+		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(rob));
+		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+		authenticationProvider.setUserDetailsService(userDetailsService);
+		ProviderManager authenticationManager = new ProviderManager(Arrays.asList(authenticationProvider));
+		return new RxAuthenticationManagerAdapter(authenticationManager);
 	}
 }
