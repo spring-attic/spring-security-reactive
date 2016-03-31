@@ -58,9 +58,10 @@ public class HttpBasicFilter implements WebFilter {
 								return chain.filter(exchange);
 							});
 					})
-					.doOnError( e -> {
+					.otherwise( e -> {
 						response.setStatusCode(HttpStatus.UNAUTHORIZED);
 						response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
+						return Mono.empty();
 					});
 		}
 
