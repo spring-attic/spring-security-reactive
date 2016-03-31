@@ -42,6 +42,7 @@ dependencies {
 
 	compile "io.projectreactor:reactor-net:${reactorVersion}"
 	compile "io.projectreactor:reactor-stream:${reactorVersion}"
+	compile "io.projectreactor:reactor-netty:${reactorVersion}"
 	compile "io.netty:netty-codec-http:4.0.31.Final"
 	compile "io.netty:netty-transport-native-epoll:4.0.31.Final"
 

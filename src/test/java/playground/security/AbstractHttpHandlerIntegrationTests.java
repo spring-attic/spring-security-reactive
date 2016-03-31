@@ -18,16 +18,19 @@ package playground.security;
 
 import org.junit.After;
 import org.junit.Before;
+import org.springframework.http.client.reactive.ReactorHttpClientRequestFactory;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.boot.RxNettyHttpServer;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.reactive.WebClient;
 
 public abstract class AbstractHttpHandlerIntegrationTests {
 
 	int port;
 	RxNettyHttpServer server;
 	RestTemplate rest;
+	WebClient webClient;
 
 	@Before
 	public void setup() throws Exception {
@@ -39,6 +42,7 @@ public abstract class AbstractHttpHandlerIntegrationTests {
 		this.server.start();
 
 		this.rest = new RestTemplate();
+		this.webClient = new WebClient(new ReactorHttpClientRequestFactory());
 	}
 
 	protected abstract HttpHandler createHttpHandler() throws Exception;

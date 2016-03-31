@@ -16,6 +16,9 @@
 
 package playground.stub;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,7 +62,7 @@ public class StubPersonController {
 	}
 
 	@RequestMapping("/me")
-	public String me(@AuthenticationPrincipal UserDetails user) {
-		return user.getUsername();
+	public Map<String,String> me(@AuthenticationPrincipal UserDetails user) {
+		return Collections.singletonMap("username", user.getUsername());
 	}
 }
