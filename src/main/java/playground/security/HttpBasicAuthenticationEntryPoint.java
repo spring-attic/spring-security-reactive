@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 public class HttpBasicAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 	@Override
-	public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException e) {
+	public <T> Mono<T> commence(ServerWebExchange exchange, AuthenticationException e) {
 		ServerHttpResponse response = exchange.getResponse();
 		response.setStatusCode(HttpStatus.UNAUTHORIZED);
 		response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
