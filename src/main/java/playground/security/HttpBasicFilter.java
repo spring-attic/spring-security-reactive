@@ -2,11 +2,8 @@ package playground.security;
 
 import java.util.Arrays;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
@@ -16,7 +13,6 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-
 
 import reactor.core.publisher.Mono;
 
@@ -52,22 +48,7 @@ public class HttpBasicFilter implements WebFilter {
 					});
 			})
 			.otherwiseIfEmpty(Mono.defer(() -> {
-				ServerHttpResponse response = exchange.getResponse();
-				Mono<SecurityContext> context = securityContextRepository.load(exchange);
-
-				return context
-					.where(c -> {
-						Authentication authentication = c.getAuthentication();
-						return authentication != null && authentication.isAuthenticated();
-					})
-					.otherwiseIfEmpty(Mono.defer(() -> {
-						response.setStatusCode(HttpStatus.UNAUTHORIZED);
-						response.getHeaders().set("WWW-Authenticate", "Basic realm=\"Reactive\"");
-						return Mono.empty();
-					}))
-					.then(sc -> {
-						return chain.filter(exchange);
-					});
+				return chain.filter(exchange);
 			}));
 	}
 

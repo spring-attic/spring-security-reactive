@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono;
 
 public interface AuthenticationEntryPoint {
 
-	Mono<Void> commence(ServerWebExchange exchange, AuthenticationException e);
+	<T> Mono<T> commence(ServerWebExchange exchange, AuthenticationException e);
 }

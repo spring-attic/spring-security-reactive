@@ -49,6 +49,7 @@ import org.springframework.web.reactive.method.annotation.ResponseBodyResultHand
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import playground.security.AuthenticationPrincipalArgumentResolver;
+import playground.security.AuthorizationFilter;
 import playground.security.HttpBasicFilter;
 
 /**
@@ -86,7 +87,7 @@ public class Application {
 
 		return WebHttpHandlerBuilder.webHandler(dispatcherHandler)
 				.exceptionHandlers(new ResponseStatusExceptionHandler())
-				.filters(new HttpBasicFilter())
+				.filters(new HttpBasicFilter(), new AuthorizationFilter())
 				.build();
 	}
 
