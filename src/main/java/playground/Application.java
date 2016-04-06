@@ -19,6 +19,7 @@ package playground;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -27,6 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.OrderComparator;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.codec.Encoder;
 import org.springframework.core.codec.support.ByteBufferEncoder;
 import org.springframework.core.codec.support.JacksonJsonEncoder;
@@ -40,17 +43,29 @@ import org.springframework.core.io.buffer.DefaultDataBufferAllocator;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.boot.HttpServer;
 import org.springframework.http.server.reactive.boot.ReactorHttpServer;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.ResponseStatusExceptionHandler;
 import org.springframework.web.reactive.handler.SimpleHandlerResultHandler;
 import org.springframework.web.reactive.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.reactive.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.reactive.method.annotation.ResponseBodyResultHandler;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import playground.security.AuthenticationPrincipalArgumentResolver;
 import playground.security.AuthorizationFilter;
-import playground.security.HttpBasicFilter;
+import playground.security.HttpBasicAuthenticationEntryPoint;
+import playground.security.HttpBasicAuthenticationFactory;
+import playground.security.HttpSessionSecurityContextRepository;
+import playground.security.RxAuthenticationManager;
+import playground.security.RxAuthenticationManagerAdapter;
+import playground.security.AuthenticationEntryPoint;
+import playground.security.AuthenticationFilter;
 
 /**
  * @author Sebastien Deleuze
@@ -85,9 +100,13 @@ public class Application {
 		DispatcherHandler dispatcherHandler = new DispatcherHandler();
 		dispatcherHandler.setApplicationContext(context);
 
+		Map<String, WebFilter> beanNameToFilters = context.getBeansOfType(WebFilter.class);
+		WebFilter[] filters = beanNameToFilters.values().toArray(new WebFilter[0]);
+		Arrays.sort(filters, AnnotationAwareOrderComparator.INSTANCE);
+
 		return WebHttpHandlerBuilder.webHandler(dispatcherHandler)
 				.exceptionHandlers(new ResponseStatusExceptionHandler())
-				.filters(new HttpBasicFilter(), new AuthorizationFilter())
+				.filters(filters)
 				.build();
 	}
 
@@ -136,6 +155,42 @@ public class Application {
 	@Bean
 	public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 		return new PropertySourcesPlaceholderConfigurer();
+	}
+
+	@Bean
+	public AuthorizationFilter authorizationFilter() {
+		return new AuthorizationFilter();
+	}
+
+	@Bean
+	public AuthenticationFilter authenticationFilter() {
+		AuthenticationFilter authenticationFilter = new AuthenticationFilter();
+		authenticationFilter.setAuthenticationManager(authenticationManager());
+		authenticationFilter.setEntryPoint(entryPoint());
+		authenticationFilter.setTokenFactory(new HttpBasicAuthenticationFactory());
+		authenticationFilter.setSecurityContextRepository(securityContextRepository());
+		return authenticationFilter;
+	}
+
+	@Bean
+	public HttpSessionSecurityContextRepository securityContextRepository() {
+		return new HttpSessionSecurityContextRepository();
+	}
+
+	@Bean
+	public AuthenticationEntryPoint entryPoint() {
+		return new HttpBasicAuthenticationEntryPoint();
+	}
+
+
+	@Bean
+	public RxAuthenticationManager authenticationManager() {
+		User rob = new User("rob","rob",AuthorityUtils.createAuthorityList("ROLE_USER"));
+		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(rob));
+		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+		authenticationProvider.setUserDetailsService(userDetailsService);
+		ProviderManager authenticationManager = new ProviderManager(Arrays.asList(authenticationProvider));
+		return new RxAuthenticationManagerAdapter(authenticationManager);
 	}
 
 }
