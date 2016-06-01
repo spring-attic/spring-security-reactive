@@ -14,8 +14,9 @@ apply plugin: 'propdeps-maven'
 
 ext {
 	reactorVersion = '2.5.0.BUILD-SNAPSHOT'
-	springSecurityVersion = '4.0.2.RELEASE'
+	springSecurityVersion = '4.1.0.RELEASE'
 	springVersion = '4.2.3.RELEASE'
+	nettyVersion = '4.1.0.CR6'
 }
 
 jar {
@@ -27,6 +28,14 @@ group = 'org.springframework.reactive'
 configurations.all {
 	// check for updates every build
 	resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		// consistent netty version to avoid issues with clashes in netty-all vs
+		// netty-common for example
+		if (details.requested.group == 'io.netty') {
+			details.useVersion nettyVersion
+		}
+	}
 }
 
 repositories {
@@ -45,6 +54,7 @@ dependencies {
 	compile "io.projectreactor:reactor-netty:${reactorVersion}"
 	compile "io.netty:netty-codec-http:4.0.31.Final"
 	compile "io.netty:netty-transport-native-epoll:4.0.31.Final"
+
 
 	compile "org.mongodb:mongodb-driver-reactivestreams:1.1.0"
 	compile "com.couchbase.client:java-client:2.2.2"

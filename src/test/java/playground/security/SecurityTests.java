@@ -1,6 +1,7 @@
 package playground.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.web.client.reactive.WebResponseExtractors.response;
 import static reactive.client.SecurityPostProcessors.httpBasic;
 
@@ -9,6 +10,7 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
 
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -16,11 +18,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.HttpHandler;
+import org.springframework.web.client.reactive.DefaultHttpRequestBuilder;
+import org.springframework.web.client.reactive.RequestPostProcessor;
 
 import playground.Application;
-import reactive.client.ExtendedDefaultHttpRequestBuilder;
-import reactive.client.RequestPostProcessor;
 import reactor.core.publisher.Mono;
+import reactor.io.netty.http.HttpException;
 
 @SuppressWarnings("rawtypes")
 public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
@@ -45,34 +48,34 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest())
 				.extract(response(String.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assert401(() -> { response.block(); });
 	}
 
 	@Test
 	public void basicWorks() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
-				.perform(peopleRequest().with(robsCredentials()))
+				.perform(peopleRequest().apply(robsCredentials()))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void basicMissingUser401() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
-				.perform(peopleRequest().with(httpBasic("missing-user","rob")))
+				.perform(peopleRequest().apply(httpBasic("missing-user","rob")))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assert401(() -> { response.block(); });
 	}
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
-				.perform(peopleRequest().with(httpBasic("rob","invalid")))
+				.perform(peopleRequest().apply(httpBasic("rob","invalid")))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assert401(() -> { response.block(); });
 	}
 
 	@Test
@@ -81,44 +84,52 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest().header("Authorization", "Basic " + base64Encode("no colon")))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assert401(() -> { response.block(); });
 	}
 
 	@Test
 	public void sessionWorks() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
-				.perform(peopleRequest().with(robsCredentials()))
+				.perform(peopleRequest().apply(robsCredentials()))
 				.extract(response(Map.class));
 
-		String session = response.get().getHeaders().getFirst("Set-Cookie");
+		String session = response.block().getHeaders().getFirst("Set-Cookie");
 
 		response = this.webClient
 				.perform(peopleRequest().header("Cookie", session))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void me() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
-				.perform(meRequest().with(robsCredentials()))
+				.perform(meRequest().apply(robsCredentials()))
 				.extract(response(Map.class));
 
-		assertThat(response.get().getBody()).hasSize(1).containsEntry("username", "rob");
+		assertThat(response.block().getBody()).hasSize(1).containsEntry("username", "rob");
+	}
+
+	private void assert401(ThrowingCallable callable) {
+		assertStatus(callable, 401);
+	}
+
+	private void assertStatus(ThrowingCallable callable, int status) {
+		assertThatExceptionOfType(HttpException.class).isThrownBy(callable).matches( e -> e.getResponseStatus().code() == status);
 	}
 
 	private RequestPostProcessor robsCredentials() {
 		return httpBasic("rob","rob");
 	}
 
-	private ExtendedDefaultHttpRequestBuilder peopleRequest() {
-		return new ExtendedDefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/people");
+	private DefaultHttpRequestBuilder peopleRequest() {
+		return new DefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/people");
 	}
 
-	private ExtendedDefaultHttpRequestBuilder meRequest() {
-		return new ExtendedDefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/me");
+	private DefaultHttpRequestBuilder meRequest() {
+		return new DefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/me");
 	}
 
 	private String base64Encode(String value) {

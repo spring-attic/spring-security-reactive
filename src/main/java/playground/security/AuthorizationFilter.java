@@ -16,7 +16,7 @@ public class AuthorizationFilter implements WebFilter {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		return securityContextRepository.load(exchange)
-			.where(c -> {
+			.filter(c -> {
 				Authentication authentication = c.getAuthentication();
 				return authentication != null && authentication.isAuthenticated();
 			})

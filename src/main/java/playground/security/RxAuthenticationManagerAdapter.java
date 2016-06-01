@@ -4,7 +4,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SchedulerGroup;
+import reactor.core.scheduler.Schedulers;
 
 public class RxAuthenticationManagerAdapter implements RxAuthenticationManager {
 	private final AuthenticationManager authenticationManager;
@@ -16,7 +16,7 @@ public class RxAuthenticationManagerAdapter implements RxAuthenticationManager {
 	@Override
 	public Mono<Authentication> authenticate(Authentication token) {
 		return Mono.<Authentication>just(token)
-			.publishOn(SchedulerGroup.io())
+			.publishOn(Schedulers.computation())
 			.then( t -> {
 				try {
 					return Mono.just(authenticationManager.authenticate(token));

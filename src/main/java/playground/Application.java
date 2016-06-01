@@ -28,18 +28,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.core.codec.Encoder;
-import org.springframework.core.codec.support.ByteBufferEncoder;
+import org.springframework.core.codec.support.JacksonJsonDecoder;
 import org.springframework.core.codec.support.JacksonJsonEncoder;
+import org.springframework.core.codec.support.StringDecoder;
 import org.springframework.core.codec.support.StringEncoder;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.convert.support.ReactiveStreamsToCompletableFutureConverter;
 import org.springframework.core.convert.support.ReactiveStreamsToRxJava1Converter;
-import org.springframework.core.io.buffer.DataBufferAllocator;
-import org.springframework.core.io.buffer.DefaultDataBufferAllocator;
+import org.springframework.http.converter.reactive.CodecHttpMessageConverter;
+import org.springframework.http.converter.reactive.HttpMessageConverter;
+import org.springframework.http.converter.reactive.ResourceHttpMessageConverter;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.boot.HttpServer;
 import org.springframework.http.server.reactive.boot.ReactorHttpServer;
@@ -50,13 +50,15 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.ResponseStatusExceptionHandler;
-import org.springframework.web.reactive.handler.SimpleHandlerResultHandler;
-import org.springframework.web.reactive.method.annotation.RequestMappingHandlerAdapter;
-import org.springframework.web.reactive.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.reactive.method.annotation.ResponseBodyResultHandler;
+import org.springframework.web.reactive.result.SimpleResultHandler;
+import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
+import playground.security.AuthenticationEntryPoint;
+import playground.security.AuthenticationFilter;
 import playground.security.AuthenticationPrincipalArgumentResolver;
 import playground.security.AuthorizationFilter;
 import playground.security.HttpBasicAuthenticationEntryPoint;
@@ -64,8 +66,6 @@ import playground.security.HttpBasicAuthenticationFactory;
 import playground.security.HttpSessionSecurityContextRepository;
 import playground.security.RxAuthenticationManager;
 import playground.security.RxAuthenticationManagerAdapter;
-import playground.security.AuthenticationEntryPoint;
-import playground.security.AuthenticationFilter;
 
 /**
  * @author Sebastien Deleuze
@@ -111,11 +111,6 @@ public class Application {
 	}
 
 	@Bean
-	DataBufferAllocator bufferAllocator() {
-		return new DefaultDataBufferAllocator();
-	}
-
-	@Bean
 	RequestMappingHandlerMapping handlerMapping() {
 		return new RequestMappingHandlerMapping();
 	}
@@ -138,18 +133,18 @@ public class Application {
 	}
 
 	@Bean
-	ResponseBodyResultHandler responseBodyResultHandler(DataBufferAllocator bufferAllocator) {
+	ResponseBodyResultHandler responseBodyResultHandler() {
+		List<HttpMessageConverter<?>> converters =
+					Arrays.asList(new ResourceHttpMessageConverter(),
+							new CodecHttpMessageConverter<String>(new StringEncoder(), new StringDecoder()),
+							new CodecHttpMessageConverter<Object>(new JacksonJsonEncoder(), new JacksonJsonDecoder()));
 
-		List<Encoder<?>> encoders = Arrays.asList(new ByteBufferEncoder(),
-				new StringEncoder(), new JacksonJsonEncoder());
-		ResponseBodyResultHandler resultHandler = new ResponseBodyResultHandler(encoders, conversionService());
-		resultHandler.setOrder(1);
-		return resultHandler;
+		return new ResponseBodyResultHandler(converters, conversionService());
 	}
 
 	@Bean
-	SimpleHandlerResultHandler simpleHandlerResultHandler() {
-		return new SimpleHandlerResultHandler(conversionService());
+	SimpleResultHandler simpleHandlerResultHandler() {
+		return new SimpleResultHandler(conversionService());
 	}
 
 	@Bean

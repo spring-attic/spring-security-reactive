@@ -31,7 +31,7 @@ public class AuthenticationFilter implements WebFilter {
 						context.setAuthentication(authentication);
 						return securityContextRepository
 							.save(exchange, context)
-							.after( () ->{
+							.then( () ->{
 								return chain.filter(exchange);
 							});
 					})
