@@ -12,7 +12,7 @@ public class HttpSessionSecurityContextRepository {
 		return exchange.getSession().map(session -> {
 			session.getAttributes().put(SESSION_ATTR, context);
 			return session;
-		}).after();
+		}).then();
 	}
 
 	public Mono<SecurityContext> load(ServerWebExchange exchange) {

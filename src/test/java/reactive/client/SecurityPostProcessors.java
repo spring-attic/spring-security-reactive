@@ -3,17 +3,18 @@ package reactive.client;
 import java.nio.charset.Charset;
 import java.util.Base64;
 
-import org.springframework.web.client.reactive.DefaultHttpRequestBuilder;
-import org.springframework.web.client.reactive.RequestPostProcessor;
+import org.springframework.web.client.reactive.ClientWebRequest;
+import org.springframework.web.client.reactive.ClientWebRequestPostProcessor;
 
 public class SecurityPostProcessors {
 
-	public static RequestPostProcessor httpBasic(String user, String password) {
-		return new RequestPostProcessor() {
+	public static ClientWebRequestPostProcessor httpBasic(String user, String password) {
+		return new ClientWebRequestPostProcessor() {
 
 			@Override
-			public void postProcess(DefaultHttpRequestBuilder toPostProcess) {
-				toPostProcess.header("Authorization", authorization(user,password));
+			public ClientWebRequest postProcess(ClientWebRequest toPostProcess) {
+				toPostProcess.getHttpHeaders().set("Authorization", authorization(user,password));
+				return toPostProcess;
 			}
 
 			private String authorization(String username, String password) {

@@ -37,7 +37,7 @@ public class StubPersonRepository implements ReactiveRepository<Person> {
 
 	@Override
 	public Mono<Void> insert(Publisher<Person> personStream) {
-		return Flux.from(personStream).doOnNext(people::add).after();
+		return Flux.from(personStream).doOnNext(people::add).then();
 	}
 
 	@Override

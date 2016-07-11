@@ -16,7 +16,7 @@ ext {
 	reactorVersion = '2.5.0.BUILD-SNAPSHOT'
 	springSecurityVersion = '4.1.0.RELEASE'
 	springVersion = '4.2.3.RELEASE'
-	nettyVersion = '4.1.0.CR6'
+	nettyVersion = '4.1.2.Final'
 }
 
 jar {
@@ -70,6 +70,6 @@ dependencies {
 	testCompile "junit:junit:4.12"
 	testCompile "org.springframework:spring-test:${springVersion}"
 	testCompile "org.assertj:assertj-core:3.2.0"
-	testCompile "io.reactivex:rxnetty-http:0.5.0-SNAPSHOT"
+	testCompile "io.reactivex:rxnetty-http:0.5.2-SNAPSHOT"
 }
 

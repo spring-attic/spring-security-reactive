@@ -2,7 +2,7 @@ package playground.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.web.client.reactive.WebResponseExtractors.response;
+import static org.springframework.web.client.reactive.ResponseExtractors.response;
 import static reactive.client.SecurityPostProcessors.httpBasic;
 
 import java.io.IOException;
@@ -18,8 +18,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.web.client.reactive.DefaultHttpRequestBuilder;
-import org.springframework.web.client.reactive.RequestPostProcessor;
+import org.springframework.web.client.reactive.ClientWebRequestPostProcessor;
+import org.springframework.web.client.reactive.DefaultClientWebRequestBuilder;
 
 import playground.Application;
 import reactor.core.publisher.Mono;
@@ -120,16 +120,16 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 		assertThatExceptionOfType(HttpException.class).isThrownBy(callable).matches( e -> e.getResponseStatus().code() == status);
 	}
 
-	private RequestPostProcessor robsCredentials() {
+	private ClientWebRequestPostProcessor robsCredentials() {
 		return httpBasic("rob","rob");
 	}
 
-	private DefaultHttpRequestBuilder peopleRequest() {
-		return new DefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/people");
+	private DefaultClientWebRequestBuilder peopleRequest() {
+		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/people");
 	}
 
-	private DefaultHttpRequestBuilder meRequest() {
-		return new DefaultHttpRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/me");
+	private DefaultClientWebRequestBuilder meRequest() {
+		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/me");
 	}
 
 	private String base64Encode(String value) {
