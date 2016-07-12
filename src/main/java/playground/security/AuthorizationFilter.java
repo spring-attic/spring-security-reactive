@@ -1,7 +1,6 @@
 package playground.security;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -20,6 +19,13 @@ public class AuthorizationFilter implements WebFilter {
 
 	ServerWebExchangeMetadataSource source = new ServerWebExchangeMetadataSource();
 
+	RxAccessDecisionManagerAdapter accessDecisionManager;
+
+	public AuthorizationFilter(RxAccessDecisionManagerAdapter accessDecisionManager) {
+		super();
+		this.accessDecisionManager = accessDecisionManager;
+	}
+
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		return securityContextRepository.load(exchange)
@@ -28,9 +34,9 @@ public class AuthorizationFilter implements WebFilter {
 				return authentication != null && authentication.isAuthenticated();
 			})
 			.then(authentication -> {
-				Set<String> authorityNames = authentication.getAuthorities().stream().map( a-> a.getAuthority()).collect(Collectors.toSet());
-				Flux<ConfigAttribute> attributes = source.getConfigAttributes(exchange);
-				return attributes.all( attr -> authorityNames.contains(attr.getAttribute()));
+				return source.getConfigAttributes(exchange).as( (Function<? super Flux<ConfigAttribute>, Mono<Boolean>>) a -> {
+					return accessDecisionManager.decide(authentication, exchange, a);
+				});
 			})
 			.filter(t -> t)
 			.otherwiseIfEmpty(Mono.defer(() -> {

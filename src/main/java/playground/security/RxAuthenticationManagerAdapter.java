@@ -19,7 +19,7 @@ public class RxAuthenticationManagerAdapter implements RxAuthenticationManager {
 			.publishOn(Schedulers.computation())
 			.then( t -> {
 				try {
-					return Mono.just(authenticationManager.authenticate(token));
+					return Mono.just(authenticationManager.authenticate(t));
 				} catch(Throwable error) {
 					return Mono.error(error);
 				}

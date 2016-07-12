@@ -32,6 +32,8 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.boot.HttpServer;
 import org.springframework.http.server.reactive.boot.TomcatHttpServer;
+import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -51,6 +53,7 @@ import playground.security.AuthorizationFilter;
 import playground.security.HttpBasicAuthenticationEntryPoint;
 import playground.security.HttpBasicAuthenticationFactory;
 import playground.security.HttpSessionSecurityContextRepository;
+import playground.security.RxAccessDecisionManagerAdapter;
 import playground.security.RxAuthenticationManager;
 import playground.security.RxAuthenticationManagerAdapter;
 
@@ -115,7 +118,8 @@ public class Application extends WebReactiveConfiguration{
 
 	@Bean
 	public AuthorizationFilter authorizationFilter() {
-		return new AuthorizationFilter();
+		UnanimousBased authz = new UnanimousBased(Arrays.asList(new RoleVoter()));
+		return new AuthorizationFilter(new RxAccessDecisionManagerAdapter(authz));
 	}
 
 	@Bean
