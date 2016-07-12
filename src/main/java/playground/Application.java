@@ -142,7 +142,8 @@ public class Application extends WebReactiveConfiguration{
 	@Bean
 	public RxAuthenticationManager authenticationManager() {
 		User rob = new User("rob","rob",AuthorityUtils.createAuthorityList("ROLE_USER"));
-		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(rob));
+		User admin = new User("admin","admin",AuthorityUtils.createAuthorityList("ROLE_ADMIN","ROLE_USER"));
+		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(admin,rob));
 		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
 		authenticationProvider.setUserDetailsService(userDetailsService);
 		ProviderManager authenticationManager = new ProviderManager(Arrays.asList(authenticationProvider));

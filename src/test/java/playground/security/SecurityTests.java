@@ -61,6 +61,24 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 	}
 
 	@Test
+	public void authorizationAdmin401() throws Exception {
+		Mono<ResponseEntity<Map>> response = this.webClient
+				.perform(adminRequest().apply(robsCredentials()))
+				.extract(response(Map.class));
+
+		assert401(() -> { response.block(); });
+	}
+
+	@Test
+	public void authorizationAdmin200() throws Exception {
+		Mono<ResponseEntity<Map>> response = this.webClient
+				.perform(adminRequest().apply(adminCredentials()))
+				.extract(response(Map.class));
+
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
 	public void basicMissingUser401() throws Exception {
 		Mono<ResponseEntity<Map>> response = this.webClient
 				.perform(peopleRequest().apply(httpBasic("missing-user","rob")))
@@ -122,6 +140,14 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 
 	private ClientWebRequestPostProcessor robsCredentials() {
 		return httpBasic("rob","rob");
+	}
+
+	private ClientWebRequestPostProcessor adminCredentials() {
+		return httpBasic("admin","admin");
+	}
+
+	private DefaultClientWebRequestBuilder adminRequest() {
+		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/admin");
 	}
 
 	private DefaultClientWebRequestBuilder peopleRequest() {

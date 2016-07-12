@@ -65,4 +65,9 @@ public class StubPersonController {
 	public Map<String,String> me(@AuthenticationPrincipal UserDetails user) {
 		return Collections.singletonMap("username", user.getUsername());
 	}
+
+	@RequestMapping("/admin")
+	public Map<String,String> admin() {
+		return Collections.singletonMap("isadmin", "true");
+	}
 }

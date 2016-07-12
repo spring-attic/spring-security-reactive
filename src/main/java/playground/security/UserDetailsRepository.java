@@ -15,7 +15,7 @@ public class UserDetailsRepository {
 		if("notfound".equals(username)) {
 			return Mono.empty();
 		}
-		boolean isAdmin = "username".contains("admin");
+		boolean isAdmin = username.contains("admin");
 		List<GrantedAuthority> authorities = isAdmin ? AuthorityUtils.createAuthorityList("ROLE_USER","ROLE_ADMIN") : AuthorityUtils.createAuthorityList("ROLE_USER");
 		return Mono.just(new User(username, username, authorities));
 	}
