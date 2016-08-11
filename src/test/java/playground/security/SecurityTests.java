@@ -23,7 +23,6 @@ import org.springframework.web.client.reactive.DefaultClientWebRequestBuilder;
 
 import playground.Application;
 import reactor.core.publisher.Mono;
-import reactor.io.netty.http.HttpException;
 
 @SuppressWarnings("rawtypes")
 public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
@@ -48,7 +47,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest())
 				.extract(response(String.class));
 
-		assert401(() -> { response.block(); });
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -66,7 +65,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(adminRequest().apply(robsCredentials()))
 				.extract(response(Map.class));
 
-		assert401(() -> { response.block(); });
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -84,7 +83,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest().apply(httpBasic("missing-user","rob")))
 				.extract(response(Map.class));
 
-		assert401(() -> { response.block(); });
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -93,7 +92,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest().apply(httpBasic("rob","invalid")))
 				.extract(response(Map.class));
 
-		assert401(() -> { response.block(); });
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 				.perform(peopleRequest().header("Authorization", "Basic " + base64Encode("no colon")))
 				.extract(response(Map.class));
 
-		assert401(() -> { response.block(); });
+		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -129,15 +128,7 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 
 		assertThat(response.block().getBody()).hasSize(1).containsEntry("username", "rob");
 	}
-
-	private void assert401(ThrowingCallable callable) {
-		assertStatus(callable, 401);
-	}
-
-	private void assertStatus(ThrowingCallable callable, int status) {
-		assertThatExceptionOfType(HttpException.class).isThrownBy(callable).matches( e -> e.getResponseStatus().code() == status);
-	}
-
+	
 	private ClientWebRequestPostProcessor robsCredentials() {
 		return httpBasic("rob","rob");
 	}

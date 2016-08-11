@@ -1,75 +1,65 @@
 buildscript {
+	ext {
+		springBootVersion = '1.4.1.BUILD-SNAPSHOT'
+	}
 	repositories {
-		maven { url 'https://repo.spring.io/plugins-release' }
+		mavenCentral()
+		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 	}
 }
 
 apply plugin: 'java'
-apply plugin: 'propdeps'
-apply plugin: 'propdeps-idea'
-apply plugin: 'propdeps-maven'
-
-ext {
-	reactorVersion = '2.5.0.BUILD-SNAPSHOT'
-	springSecurityVersion = '4.1.0.RELEASE'
-	springVersion = '4.2.3.RELEASE'
-	nettyVersion = '4.1.2.Final'
-}
+apply plugin: 'spring-boot'
 
 jar {
-	baseName = 'spring-reactive-playground'
+	baseName = 'spring-reactive-security'
+	version = '0.0.1-SNAPSHOT'
 }
 
-group = 'org.springframework.reactive'
-
-configurations.all {
-	// check for updates every build
-	resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-
-	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-		// consistent netty version to avoid issues with clashes in netty-all vs
-		// netty-common for example
-		if (details.requested.group == 'io.netty') {
-			details.useVersion nettyVersion
-		}
-	}
-}
+ext['reactor.version'] = '3.0.0.BUILD-SNAPSHOT'
+ext['spring.version'] = '5.0.0.BUILD-SNAPSHOT'
+ext['assertj.version'] = '3.5.2'
 
 repositories {
 	mavenCentral()
 	maven { url 'https://oss.jfrog.org/libs-snapshot' }  // RxNetty 0.5.x snapshots
-	maven { url 'http://repo.spring.io/snapshot' }  // Spring Reactive and Reactor snapshot
+	maven { url "https://repo.spring.io/snapshot" }
+	maven { url "https://repo.spring.io/milestone" }
 }
 
 dependencies {
-	compile "org.springframework.security:spring-security-core:$springSecurityVersion"
-	compile "org.springframework.reactive:spring-reactive:0.1.0.BUILD-SNAPSHOT"
-	compile "com.fasterxml.jackson.core:jackson-databind:2.6.1"
+	// Use Tomcat by default
+	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
+	compile "org.springframework:spring-web"
+	compile "io.projectreactor.ipc:reactor-netty:0.5.0.BUILD-SNAPSHOT"
+	compile "io.netty:netty-buffer:4.1.4.Final"
+	compile "org.springframework.boot:spring-boot-starter-security"
+	
+	compile "io.reactivex:rxjava:1.1.6"
 
-	compile "io.projectreactor:reactor-net:${reactorVersion}"
-	compile "io.projectreactor:reactor-stream:${reactorVersion}"
-	compile "io.projectreactor:reactor-netty:${reactorVersion}"
-	compile "io.netty:netty-codec-http:4.0.31.Final"
-	compile "io.netty:netty-transport-native-epoll:4.0.31.Final"
+	compile "org.springframework.data:spring-data-commons:2.0.0.DATACMNS-836-SNAPSHOT"
+	compile "org.springframework.data:spring-data-mongodb:2.0.0.DATAMONGO-1444-SNAPSHOT"
+	compile "org.mongodb:mongodb-driver-reactivestreams:1.2.0"
 
+	// With Reactor Netty
+	/*
+	compile('org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT') {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	}
+	compile "io.projectreactor:reactor-netty:0.5.0.BUILD-SNAPSHOT"
+    */
 
-	compile "org.mongodb:mongodb-driver-reactivestreams:1.1.0"
-	compile "com.couchbase.client:java-client:2.2.2"
-	compile "com.github.alaisi.pgasync:postgres-async-driver:0.7"
+	// With RxNetty
+	/*
+	compile('org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT') {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	}
+	compile "io.reactivex:rxnetty-common:0.5.2-SNAPSHOT"
+	compile "io.reactivex:rxnetty-http:0.5.2-SNAPSHOT"
+    */
 
-	compile "org.slf4j:slf4j-jcl:1.7.12"
-	compile "org.slf4j:jul-to-slf4j:1.7.12"
-	compile("log4j:log4j:1.2.16")
-
-	// Temporary dependency cf. https://github.com/spring-projects/spring-reactive/issues/45
-	compile "javax.servlet:javax.servlet-api:3.1.0"
-
-	testCompile "junit:junit:4.12"
-	testCompile "org.springframework:spring-test:${springVersion}"
-	testCompile "org.assertj:assertj-core:3.2.0"
-	testCompile "io.reactivex:rxnetty-http:0.5.2-SNAPSHOT"
+	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
-

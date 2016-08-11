@@ -12,8 +12,7 @@ import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.core.tuple.Tuple;
-import reactor.core.tuple.Tuple3;
+import reactor.util.function.*;
 
 public class RxAccessDecisionManagerAdapter implements RxAccessDecisionManager {
 	private final AccessDecisionManager accessDecisionManager;
@@ -25,8 +24,8 @@ public class RxAccessDecisionManagerAdapter implements RxAccessDecisionManager {
 
 	public Mono<Boolean> decide(Authentication authentication, Object object, Flux<ConfigAttribute> configAttributes) {
 		return Mono
-			.just(Tuple.of(authentication, object, configAttributes))
-			.publishOn(Schedulers.computation())
+			.just(Tuples.of(authentication, object, configAttributes))
+			.publishOn(Schedulers.elastic())
 			.filter((Tuple3<Authentication, Object, Flux<ConfigAttribute>> t) -> {
 				Authentication auth = t.t1;
 				return auth != null && auth.isAuthenticated();

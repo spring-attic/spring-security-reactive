@@ -16,7 +16,7 @@ public class RxAuthenticationManagerAdapter implements RxAuthenticationManager {
 	@Override
 	public Mono<Authentication> authenticate(Authentication token) {
 		return Mono.<Authentication>just(token)
-			.publishOn(Schedulers.computation())
+			.publishOn(Schedulers.elastic())
 			.then( t -> {
 				try {
 					return Mono.just(authenticationManager.authenticate(t));

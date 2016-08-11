@@ -23,15 +23,17 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.http.server.reactive.boot.HttpServer;
-import org.springframework.http.server.reactive.boot.TomcatHttpServer;
+import org.springframework.http.server.reactive.bootstrap.HttpServer;
+import org.springframework.http.server.reactive.bootstrap.TomcatHttpServer;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.ProviderManager;
@@ -60,8 +62,8 @@ import playground.security.RxAuthenticationManagerAdapter;
 /**
  * @author Sebastien Deleuze
  */
-@Configuration
-@PropertySource("classpath:application.properties")
+@SpringBootApplication
+@EnableAutoConfiguration(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 public class Application extends WebReactiveConfiguration{
 
 	public static void main(String[] args) throws Exception {

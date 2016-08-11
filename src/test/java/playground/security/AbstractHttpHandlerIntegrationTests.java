@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.http.server.reactive.boot.RxNettyHttpServer;
+import org.springframework.http.server.reactive.bootstrap.TomcatHttpServer;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.reactive.WebClient;
@@ -28,14 +28,14 @@ import org.springframework.web.client.reactive.WebClient;
 public abstract class AbstractHttpHandlerIntegrationTests {
 
 	int port;
-	RxNettyHttpServer server;
+	TomcatHttpServer server;
 	RestTemplate rest;
 	WebClient webClient;
 
 	@Before
 	public void setup() throws Exception {
 		this.port = SocketUtils.findAvailableTcpPort();
-		this.server = new RxNettyHttpServer();
+		this.server = new TomcatHttpServer();
 		this.server.setPort(this.port);
 		this.server.setHandler(createHttpHandler());
 		this.server.afterPropertiesSet();
