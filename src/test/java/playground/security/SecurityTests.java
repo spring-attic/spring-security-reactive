@@ -136,15 +136,15 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 	}
 
 	private DefaultClientWebRequestBuilder adminRequest() {
-		return get("http://localhost:" + port + "/admin");
+		return get("http://localhost:{port}/admin", port);
 	}
 
 	private DefaultClientWebRequestBuilder peopleRequest() {
-		return get("http://localhost:" + port + "/people");
+		return get("http://localhost:{port}/people", port);
 	}
 
 	private DefaultClientWebRequestBuilder meRequest() {
-		return get("http://localhost:" + port + "/me");
+		return get("http://localhost:{port}/me",port);
 	}
 
 	private String base64Encode(String value) {
