@@ -1,20 +1,18 @@
 package playground.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.web.client.reactive.ResponseExtractors.response;
 import static reactive.client.SecurityPostProcessors.httpBasic;
+import static org.springframework.web.client.reactive.ClientWebRequestBuilders.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
 
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.HttpHandler;
@@ -138,15 +136,15 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 	}
 
 	private DefaultClientWebRequestBuilder adminRequest() {
-		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/admin");
+		return get("http://localhost:" + port + "/admin");
 	}
 
 	private DefaultClientWebRequestBuilder peopleRequest() {
-		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/people");
+		return get("http://localhost:" + port + "/people");
 	}
 
 	private DefaultClientWebRequestBuilder meRequest() {
-		return new DefaultClientWebRequestBuilder(HttpMethod.GET, "http://localhost:" + port + "/me");
+		return get("http://localhost:" + port + "/me");
 	}
 
 	private String base64Encode(String value) {
