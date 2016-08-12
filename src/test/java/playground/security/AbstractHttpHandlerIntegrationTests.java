@@ -22,14 +22,12 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.bootstrap.TomcatHttpServer;
 import org.springframework.util.SocketUtils;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.reactive.WebClient;
 
 public abstract class AbstractHttpHandlerIntegrationTests {
 
 	int port;
 	TomcatHttpServer server;
-	RestTemplate rest;
 	WebClient webClient;
 
 	@Before
@@ -41,7 +39,6 @@ public abstract class AbstractHttpHandlerIntegrationTests {
 		this.server.afterPropertiesSet();
 		this.server.start();
 
-		this.rest = new RestTemplate();
 		this.webClient = new WebClient(new ReactorClientHttpConnector());
 	}
 
