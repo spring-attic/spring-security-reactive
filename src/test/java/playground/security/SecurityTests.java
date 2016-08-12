@@ -77,27 +77,27 @@ public class SecurityTests extends AbstractHttpHandlerIntegrationTests {
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		Mono<ResponseEntity<Map>> response = this.webClient
+		Mono<ResponseEntity<String>> response = this.webClient
 				.perform(peopleRequest().apply(httpBasic("missing-user","rob")))
-				.extract(response(Map.class));
-
+				.extract(response(String.class));
+	
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		Mono<ResponseEntity<Map>> response = this.webClient
+		Mono<ResponseEntity<String>> response = this.webClient
 				.perform(peopleRequest().apply(httpBasic("rob","invalid")))
-				.extract(response(Map.class));
+				.extract(response(String.class));
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicInvalidParts401() throws Exception {
-		Mono<ResponseEntity<Map>> response = this.webClient
+		Mono<ResponseEntity<String>> response = this.webClient
 				.perform(peopleRequest().header("Authorization", "Basic " + base64Encode("no colon")))
-				.extract(response(Map.class));
+				.extract(response(String.class));
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
