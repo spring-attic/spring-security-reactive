@@ -47,15 +47,15 @@ public class ReactiveAccessDecisionManagerAdapter implements ReactiveAccessDecis
 			.just(Tuples.of(authentication, object, configAttributes))
 			.publishOn(Schedulers.elastic())
 			.filter((Tuple3<Authentication, Object, Flux<ConfigAttribute>> t) -> {
-				Authentication auth = t.t1;
+				Authentication auth = t.getT1();
 				return auth != null && auth.isAuthenticated();
 			})
 			.then((Function<Tuple3<Authentication, Object, Flux<ConfigAttribute>>, Mono<Boolean>>) t -> {
 				List<ConfigAttribute> attrs = new ArrayList<>();
-				t.t3.toIterable().forEach(attrs::add);
+				t.getT3().toIterable().forEach(attrs::add);
 
 				try {
-					accessDecisionManager.decide(t.t1, t.t2, attrs);
+					accessDecisionManager.decide(t.getT1(), t.getT2(), attrs);
 					return Mono.just(true);
 				} catch(AccessDeniedException fail) {
 					return Mono.just(false);
