@@ -14,21 +14,38 @@
  * limitations under the License.
  */
 
-package playground.app;
+package sample;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.reactivestreams.Publisher;
+import org.springframework.stereotype.Repository;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * @author Sebastien Deleuze
+ * @author Rob Winch
  */
-public interface ReactiveRepository<T> {
+@Repository
+public class StubPersonRepository implements ReactiveRepository<Person> {
+	List<Person> people = new ArrayList<>(Arrays.asList(new Person("1", "first", "last")));
 
-	Mono<Void> insert(Publisher<T> elements);
+	@Override
+	public Mono<Void> insert(Publisher<Person> personStream) {
+		return Flux.from(personStream).doOnNext(people::add).then();
+	}
 
-	Flux<T> list();
+	@Override
+	public Flux<Person> list() {
+		return Flux.fromIterable(people);
+	}
 
-	Mono<T> findById(String id);
+	@Override
+	public Mono<Person> findById(String id) {
+		return null;
+	}
 
 }

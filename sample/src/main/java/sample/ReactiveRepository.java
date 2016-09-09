@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.http.server.reactive.bootstrap;
+package sample;
 
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
-import org.springframework.http.server.reactive.HttpHandler;
+import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
- * @author Rossen Stoyanchev
+ * @author Sebastien Deleuze
  */
-public interface HttpServer extends InitializingBean, Lifecycle {
+public interface ReactiveRepository<T> {
 
-	void setHost(String host);
+	Mono<Void> insert(Publisher<T> elements);
 
-	void setPort(int port);
+	Flux<T> list();
 
-	void setHandler(HttpHandler handler);
+	Mono<T> findById(String id);
 
 }

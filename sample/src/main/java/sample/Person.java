@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package playground.app;
+package sample;
 
 /**
  * @author Sebastien Deleuze

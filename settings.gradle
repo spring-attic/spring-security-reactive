@@ -1,0 +1,4 @@
+rootProject.name = 'spring-security-reactive-build'
+
+include ':spring-security-reactive'
+include ':sample'

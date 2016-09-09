@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package playground.app;
+package sample;
 
 import java.util.Collections;
 import java.util.Map;

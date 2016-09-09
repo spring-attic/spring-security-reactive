@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package playground.app;
+package sample;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.autoconfigure.reactiveweb.ReactiveWebAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.http.server.reactive.bootstrap.HttpServer;
-import org.springframework.http.server.reactive.bootstrap.TomcatHttpServer;
 import org.springframework.security.access.ReactiveAccessDecisionManagerAdapter;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.access.vote.UnanimousBased;
@@ -51,70 +39,20 @@ import org.springframework.security.web.server.AuthorizationWebFilter;
 import org.springframework.security.web.server.HttpBasicAuthenticationFactory;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
 import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
-import org.springframework.web.reactive.DispatcherHandler;
-import org.springframework.web.reactive.config.WebReactiveConfiguration;
-import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
-import org.springframework.web.server.handler.ResponseStatusExceptionHandler;
 
 /**
- * @author Sebastien Deleuze
+ * @author Rob Winch
  */
-@SpringBootApplication
-@EnableAutoConfiguration(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
-public class Application extends WebReactiveConfiguration{
+@SpringBootApplication(exclude = ReactiveWebAutoConfiguration.class)
+public class Application {
 
 	public static void main(String[] args) throws Exception {
-
-		HttpHandler httpHandler = createHttpHandler();
-
-		HttpServer server = new TomcatHttpServer();
-		server.setPort(8080);
-		server.setHandler(httpHandler);
-		server.afterPropertiesSet();
-		server.start();
-
-		CompletableFuture<Void> stop = new CompletableFuture<>();
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			stop.complete(null);
-		}));
-		synchronized (stop) {
-			stop.wait();
-		}
-	}
-
-	public static HttpHandler createHttpHandler() throws IOException {
-		Properties prop = new Properties();
-		prop.load(Application.class.getClassLoader().getResourceAsStream("application.properties"));
-		String profiles = prop.getProperty("profiles");
-		if(profiles != null) {
-			System.setProperty("spring.profiles.active", profiles);
-		}
-
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("playground");
-
-		DispatcherHandler dispatcherHandler = new DispatcherHandler();
-		dispatcherHandler.setApplicationContext(context);
-
-		Map<String, WebFilter> beanNameToFilters = context.getBeansOfType(WebFilter.class);
-		WebFilter[] filters = beanNameToFilters.values().toArray(new WebFilter[0]);
-		Arrays.sort(filters, AnnotationAwareOrderComparator.INSTANCE);
-
-		return WebHttpHandlerBuilder.webHandler(dispatcherHandler)
-				.exceptionHandlers(new ResponseStatusExceptionHandler())
-				.filters(filters)
-				.build();
-	}
-
-	@Override
-	protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(new AuthenticationPrincipalArgumentResolver());
+		SpringApplication.run(Application.class, args);
 	}
 
 	@Bean
-	public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-		return new PropertySourcesPlaceholderConfigurer();
+	public AuthenticationPrincipalArgumentResolver authenticationPrincipalArgumentResolver() {
+		return new AuthenticationPrincipalArgumentResolver();
 	}
 
 	@Bean
@@ -143,12 +81,11 @@ public class Application extends WebReactiveConfiguration{
 		return new HttpBasicAuthenticationEntryPoint();
 	}
 
-
 	@Bean
 	public ReactiveAuthenticationManager authenticationManager() {
-		User rob = new User("rob","rob",AuthorityUtils.createAuthorityList("ROLE_USER"));
-		User admin = new User("admin","admin",AuthorityUtils.createAuthorityList("ROLE_ADMIN","ROLE_USER"));
-		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(admin,rob));
+		User rob = new User("rob", "rob", AuthorityUtils.createAuthorityList("ROLE_USER"));
+		User admin = new User("admin", "admin", AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ROLE_USER"));
+		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(admin, rob));
 		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
 		authenticationProvider.setUserDetailsService(userDetailsService);
 		ProviderManager authenticationManager = new ProviderManager(Arrays.asList(authenticationProvider));
