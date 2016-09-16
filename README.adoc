@@ -5,13 +5,13 @@ Spring Security Reactive is a sandbox for experimenting on the reactive support 
 Spring Reactive JAR dependency is available from Spring snapshot repository:
 
 - Repository URL: `https://repo.spring.io/snapshot/`
-- GroupId: `org.springframework.reactive`
- - - ArtifactId: `spring-reactive`
+- GroupId: `org.springframework.security`
+ - - ArtifactId: `spring-security-reactive`
  - - Version: `0.1.0.BUILD-SNAPSHOT`
- 
+
 == Sample application
 
-There is a sample within the tests in the [playground.app](https://github.com/spring-projects/spring-security-reactive/tree/master/src/test/java/playground/app) package.
+There is a https://github.com/spring-projects/spring-security-reactive/tree/master/sample[sample] in the repository to try out.
 
 == Building from Source
 
@@ -33,7 +33,7 @@ You can check the current build status on this [Bamboo Spring Reactive build][].
  -`./gradlew build`
  -
  -## Contributing
- -Feel free to send us your feedback on the [issue tracker][]; [Pull requests][] are welcome.
+ -Feel free to send us your feedback on the issue tracker; Pull requests are welcome.
  -
  -## License
- -The Spring Reactive is released under version 2.0 of the [Apache License][].
+ -The Spring Reactive is released under version 2.0 of the Apache License.
