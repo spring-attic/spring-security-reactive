@@ -15,8 +15,12 @@
  */
 package org.springframework.security.web.server.access.expression;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Flux;
@@ -27,12 +31,37 @@ import reactor.core.publisher.Flux;
  * @since 5.0
  */
 public class ServerWebExchangeMetadataSource {
+	private final LinkedHashMap<ServerWebExchangeMatcher,SecurityConfig> mappings;
+
+	private ServerWebExchangeMetadataSource(LinkedHashMap<ServerWebExchangeMatcher, SecurityConfig> mappings) {
+		this.mappings = mappings;
+	}
 
 	public Flux<ConfigAttribute> getConfigAttributes(ServerWebExchange exchange) {
-		String path = exchange.getRequest().getURI().getPath();
-		if(path.contains("admin")) {
-			return Flux.just(new SecurityConfig("hasRole('ADMIN')"));
+		for(Map.Entry<ServerWebExchangeMatcher,SecurityConfig> entry : mappings.entrySet()) {
+			if(entry.getKey().matches(exchange)) {
+				return Flux.just(entry.getValue());
+			}
 		}
-		return Flux.just(new SecurityConfig("authenticated"));
+		return Flux.empty();
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public static class Builder {
+		private final LinkedHashMap<ServerWebExchangeMatcher,SecurityConfig> mappings = new LinkedHashMap<>();
+
+		private Builder() {}
+
+		public Builder add(ServerWebExchangeMatcher matcher, SecurityConfig config) {
+			this.mappings.put(matcher, config);
+			return this;
+		}
+
+		public ServerWebExchangeMetadataSource build() {
+			return new ServerWebExchangeMetadataSource(mappings);
+		}
 	}
 }

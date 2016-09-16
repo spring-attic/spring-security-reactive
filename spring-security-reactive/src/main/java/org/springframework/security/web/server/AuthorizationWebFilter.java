@@ -42,13 +42,14 @@ public class AuthorizationWebFilter implements WebFilter {
 
 	AuthenticationEntryPoint entryPoint = new HttpBasicAuthenticationEntryPoint();
 
-	ServerWebExchangeMetadataSource source = new ServerWebExchangeMetadataSource();
+	ServerWebExchangeMetadataSource source;
 
 	ReactiveAccessDecisionManager<? super ServerWebExchange> accessDecisionManager;
 
-	public AuthorizationWebFilter(ReactiveAccessDecisionManager<? super ServerWebExchange> accessDecisionManager) {
+	public AuthorizationWebFilter(ReactiveAccessDecisionManager<? super ServerWebExchange> accessDecisionManager, ServerWebExchangeMetadataSource source) {
 		super();
 		this.accessDecisionManager = accessDecisionManager;
+		this.source = source;
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.reactiveweb.ReactiveWebAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
@@ -35,6 +36,7 @@ import org.springframework.security.web.server.AuthenticationWebFilter;
 import org.springframework.security.web.server.AuthorizationWebFilter;
 import org.springframework.security.web.server.HttpBasicAuthenticationFactory;
 import org.springframework.security.web.server.access.expression.ExpressionReactiveAccessDecisionManager;
+import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
 import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
 
@@ -56,7 +58,12 @@ public class Application {
 	@Bean
 	public AuthorizationWebFilter authorizationFilter() {
 		ExpressionReactiveAccessDecisionManager manager = new ExpressionReactiveAccessDecisionManager();
-		return new AuthorizationWebFilter(manager);
+		ServerWebExchangeMetadataSource metadataSource = ServerWebExchangeMetadataSource
+				.builder()
+				.add(exchange -> exchange.getRequest().getURI().getPath().contains("admin"), new SecurityConfig("hasRole('ADMIN')"))
+				.add(exchange -> true, new SecurityConfig("authenticated"))
+				.build();
+		return new AuthorizationWebFilter(manager, metadataSource );
 	}
 
 	@Bean
