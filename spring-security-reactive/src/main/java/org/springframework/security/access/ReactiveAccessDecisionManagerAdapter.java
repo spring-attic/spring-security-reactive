@@ -30,11 +30,11 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.function.*;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
-public class ReactiveAccessDecisionManagerAdapter implements ReactiveAccessDecisionManager {
+public class ReactiveAccessDecisionManagerAdapter implements ReactiveAccessDecisionManager<Object> {
 	private final AccessDecisionManager accessDecisionManager;
 
 	public ReactiveAccessDecisionManagerAdapter(AccessDecisionManager accessDecisionManager) {

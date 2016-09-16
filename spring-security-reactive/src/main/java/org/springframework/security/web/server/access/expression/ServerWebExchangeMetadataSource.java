@@ -22,7 +22,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
@@ -31,8 +31,8 @@ public class ServerWebExchangeMetadataSource {
 	public Flux<ConfigAttribute> getConfigAttributes(ServerWebExchange exchange) {
 		String path = exchange.getRequest().getURI().getPath();
 		if(path.contains("admin")) {
-			return Flux.just(new SecurityConfig("ROLE_ADMIN"));
+			return Flux.just(new SecurityConfig("hasRole('ADMIN')"));
 		}
-		return Flux.just(new SecurityConfig("ROLE_USER"));
+		return Flux.just(new SecurityConfig("authenticated"));
 	}
 }

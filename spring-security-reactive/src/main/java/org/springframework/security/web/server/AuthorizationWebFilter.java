@@ -19,7 +19,7 @@ package org.springframework.security.web.server;
 import java.util.function.Function;
 
 import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.ReactiveAccessDecisionManagerAdapter;
+import org.springframework.security.access.ReactiveAccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
@@ -33,7 +33,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
@@ -44,9 +44,9 @@ public class AuthorizationWebFilter implements WebFilter {
 
 	ServerWebExchangeMetadataSource source = new ServerWebExchangeMetadataSource();
 
-	ReactiveAccessDecisionManagerAdapter accessDecisionManager;
+	ReactiveAccessDecisionManager<? super ServerWebExchange> accessDecisionManager;
 
-	public AuthorizationWebFilter(ReactiveAccessDecisionManagerAdapter accessDecisionManager) {
+	public AuthorizationWebFilter(ReactiveAccessDecisionManager<? super ServerWebExchange> accessDecisionManager) {
 		super();
 		this.accessDecisionManager = accessDecisionManager;
 	}

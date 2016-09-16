@@ -22,10 +22,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
-public interface ReactiveAccessDecisionManager {
-	public Mono<Boolean> decide(Authentication authentication, Object object, Flux<ConfigAttribute> configAttributes);
+public interface ReactiveAccessDecisionManager<T> {
+	// FIXME return Mono<Decision>
+	public Mono<Boolean> decide(Authentication authentication, T object, Flux<ConfigAttribute> configAttributes);
 }
