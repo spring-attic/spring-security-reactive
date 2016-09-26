@@ -30,7 +30,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
@@ -59,11 +59,8 @@ public class AuthenticationWebFilter implements WebFilter {
 								return chain.filter(exchange);
 							});
 					})
-					.otherwise( t -> {
-						if(t instanceof AuthenticationException) {
-							return entryPoint.commence(exchange, (AuthenticationException) t);
-						}
-						return Mono.error(t);
+					.otherwise( AuthenticationException.class, t -> {
+						return entryPoint.commence(exchange, (AuthenticationException) t);
 					});
 			})
 			.otherwiseIfEmpty(Mono.defer(() -> {
