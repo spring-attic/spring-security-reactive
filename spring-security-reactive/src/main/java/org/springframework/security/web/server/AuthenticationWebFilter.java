@@ -60,7 +60,7 @@ public class AuthenticationWebFilter implements WebFilter {
 							});
 					})
 					.otherwise( AuthenticationException.class, t -> {
-						return entryPoint.commence(exchange, (AuthenticationException) t);
+						return entryPoint.commence(exchange, t);
 					});
 			})
 			.otherwiseIfEmpty(Mono.defer(() -> {
