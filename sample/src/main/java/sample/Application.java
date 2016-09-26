@@ -20,7 +20,6 @@ import java.util.Arrays;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.reactiveweb.ReactiveWebAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.ProviderManager;
@@ -43,7 +42,7 @@ import org.springframework.security.web.server.context.WebSessionSecurityContext
 /**
  * @author Rob Winch
  */
-@SpringBootApplication(exclude = ReactiveWebAutoConfiguration.class)
+@SpringBootApplication
 public class Application {
 
 	public static void main(String[] args) throws Exception {
