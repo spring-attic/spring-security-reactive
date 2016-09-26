@@ -1,7 +1,7 @@
 package sample;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.web.client.reactive.SecurityClientWebRequestPostProcessors.httpBasic;
+import static org.springframework.web.client.reactive.ClientWebRequestPostProcessors.httpBasic;
 import static org.springframework.web.client.reactive.ClientWebRequestBuilders.get;
 import static org.springframework.web.client.reactive.ResponseExtractors.response;
 
