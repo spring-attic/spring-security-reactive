@@ -38,6 +38,7 @@ import org.springframework.security.web.server.access.expression.ExpressionReact
 import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
 import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.*;
 
 /**
  * @author Rob Winch
@@ -59,8 +60,8 @@ public class Application {
 		ExpressionReactiveAccessDecisionManager manager = new ExpressionReactiveAccessDecisionManager();
 		ServerWebExchangeMetadataSource metadataSource = ServerWebExchangeMetadataSource
 				.builder()
-				.add(exchange -> exchange.getRequest().getURI().getPath().contains("admin"), new SecurityConfig("hasRole('ADMIN')"))
-				.add(exchange -> true, new SecurityConfig("authenticated"))
+				.add(antMatchers("/admin/**"), new SecurityConfig("hasRole('ADMIN')"))
+				.add(anyExchange(), new SecurityConfig("authenticated"))
 				.build();
 		return new AuthorizationWebFilter(manager, metadataSource );
 	}
