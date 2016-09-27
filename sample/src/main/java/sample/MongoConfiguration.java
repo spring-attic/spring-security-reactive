@@ -19,7 +19,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
@@ -45,10 +47,16 @@ public class MongoConfiguration implements BeanClassLoaderAware, BeanFactoryAwar
 
 	private ClassLoader classLoader;
 	private BeanFactory beanFactory;
+	@Autowired
+	private MongoProperties mongoProperties;
 
 	@Bean
 	MongoClient mongoClient() {
-		return MongoClients.create();
+		Integer port = mongoProperties.getPort();
+		if(port == null) {
+			port = MongoProperties.DEFAULT_PORT;
+		}
+		return MongoClients.create("mongodb://localhost:" + port);
 	}
 
 	@Bean
