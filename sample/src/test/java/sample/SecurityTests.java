@@ -16,6 +16,7 @@ import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -135,15 +136,15 @@ public class SecurityTests {
 	}
 
 	private DefaultClientWebRequestBuilder adminRequest() {
-		return get("http://localhost:{port}/admin", port);
+		return get("http://localhost:{port}/admin", port).accept(MediaType.APPLICATION_JSON);
 	}
 
 	private DefaultClientWebRequestBuilder peopleRequest() {
-		return get("http://localhost:{port}/people", port);
+		return get("http://localhost:{port}/people", port).accept(MediaType.APPLICATION_JSON);
 	}
 
 	private DefaultClientWebRequestBuilder meRequest() {
-		return get("http://localhost:{port}/me",port);
+		return get("http://localhost:{port}/me",port).accept(MediaType.APPLICATION_JSON);
 	}
 
 	private String base64Encode(String value) {
