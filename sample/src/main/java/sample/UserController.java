@@ -22,41 +22,35 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Rob Winch
  */
 @RestController
-public class StubPersonController {
+public class UserController {
 
-	private final ReactiveRepository<Person> repository;
+	private final UserRepository users;
 
 	@Autowired
-	public StubPersonController(StubPersonRepository repository) {
-		this.repository = repository;
+	public UserController(UserRepository users) {
+		this.users = users;
 	}
 
-	@RequestMapping(path="/people", method = RequestMethod.POST)
-	public Mono<Void> create(@RequestBody Flux<Person> personStream) {
-		return this.repository.insert(personStream);
+	@PostMapping(path="/user")
+	public Flux<User> create(@RequestBody Flux<User> userStream) {
+		return this.users.save(userStream);
 	}
 
-	@RequestMapping(path="/people", method = RequestMethod.GET)
-	public Flux<Person> list() {
-		return this.repository.list();
-	}
-
-	// TODO Manage {@code @PathVariable}
-	@RequestMapping(path = "/people/1", method = RequestMethod.GET)
-	public Mono<Person> findById() {
-		return this.repository.findById("1");
+	@GetMapping(path="/users")
+	public Flux<User> list() {
+		return this.users.findAll();
 	}
 
 	@RequestMapping("/me")

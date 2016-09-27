@@ -36,9 +36,15 @@ dependencies {
 	// Use Tomcat by default
 	compile project(':spring-security-reactive')
 	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
+	compile "org.springframework.boot:spring-boot-starter-data-mongodb"
+	compile "de.flapdoodle.embed:de.flapdoodle.embed.mongo"
 	compile "io.projectreactor.ipc:reactor-netty:0.5.0.BUILD-SNAPSHOT"
 	compile "io.netty:netty-buffer:4.1.4.Final"
 	compile "org.springframework.boot:spring-boot-starter-security"
+	compile "org.springframework.data:spring-data-commons:2.0.0.DATACMNS-836-SNAPSHOT"
+	compile "org.springframework.data:spring-data-mongodb:2.0.0.DATAMONGO-1444-SNAPSHOT"
+	compile "org.mongodb:mongodb-driver-reactivestreams:1.2.0"
+	compile "org.mongodb:mongo-java-driver:3.2.2"
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.springframework.security:spring-security-test"
 }

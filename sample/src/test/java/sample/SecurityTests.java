@@ -43,7 +43,7 @@ public class SecurityTests {
 	@Test
 	public void basicRequired() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest())
+				.perform(usersRequest())
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -52,7 +52,7 @@ public class SecurityTests {
 	@Test
 	public void basicWorks() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest().apply(robsCredentials()))
+				.perform(usersRequest().apply(robsCredentials()))
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,7 +79,7 @@ public class SecurityTests {
 	@Test
 	public void basicMissingUser401() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest().apply(httpBasic("missing-user","rob")))
+				.perform(usersRequest().apply(httpBasic("missing-user","rob")))
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -88,7 +88,7 @@ public class SecurityTests {
 	@Test
 	public void basicInvalidPassword401() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest().apply(httpBasic("rob","invalid")))
+				.perform(usersRequest().apply(httpBasic("rob","invalid")))
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -97,7 +97,7 @@ public class SecurityTests {
 	@Test
 	public void basicInvalidParts401() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest().header("Authorization", "Basic " + base64Encode("no colon")))
+				.perform(usersRequest().header("Authorization", "Basic " + base64Encode("no colon")))
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -106,13 +106,13 @@ public class SecurityTests {
 	@Test
 	public void sessionWorks() throws Exception {
 		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(peopleRequest().apply(robsCredentials()))
+				.perform(usersRequest().apply(robsCredentials()))
 				.extract(mapStringString());
 
 		String session = response.block().getHeaders().getFirst("Set-Cookie");
 
 		response = this.webClient
-				.perform(peopleRequest().header("Cookie", session))
+				.perform(usersRequest().header("Cookie", session))
 				.extract(mapStringString());
 
 		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -139,8 +139,8 @@ public class SecurityTests {
 		return get("http://localhost:{port}/admin", port).accept(MediaType.APPLICATION_JSON);
 	}
 
-	private DefaultClientWebRequestBuilder peopleRequest() {
-		return get("http://localhost:{port}/people", port).accept(MediaType.APPLICATION_JSON);
+	private DefaultClientWebRequestBuilder usersRequest() {
+		return get("http://localhost:{port}/users", port).accept(MediaType.APPLICATION_JSON);
 	}
 
 	private DefaultClientWebRequestBuilder meRequest() {

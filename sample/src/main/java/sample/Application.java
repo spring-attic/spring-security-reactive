@@ -16,19 +16,15 @@
 
 package sample;
 
-import java.util.Arrays;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.antMatchers;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.anyExchange;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.authentication.UserDetailsAuthenticationManager;
 import org.springframework.security.web.reactive.result.method.AuthenticationPrincipalArgumentResolver;
 import org.springframework.security.web.server.AuthenticationEntryPoint;
 import org.springframework.security.web.server.AuthenticationWebFilter;
@@ -38,7 +34,6 @@ import org.springframework.security.web.server.access.expression.ExpressionReact
 import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
 import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.*;
 
 /**
  * @author Rob Winch
@@ -67,9 +62,9 @@ public class Application {
 	}
 
 	@Bean
-	public AuthenticationWebFilter authenticationFilter() {
+	public AuthenticationWebFilter authenticationFilter(ReactiveAuthenticationManager authenticationManager) {
 		AuthenticationWebFilter authenticationFilter = new AuthenticationWebFilter();
-		authenticationFilter.setAuthenticationManager(authenticationManager());
+		authenticationFilter.setAuthenticationManager(authenticationManager);
 		authenticationFilter.setEntryPoint(entryPoint());
 		authenticationFilter.setAuthenticationConverter(new HttpBasicAuthenticationFactory());
 		authenticationFilter.setSecurityContextRepository(securityContextRepository());
@@ -87,14 +82,8 @@ public class Application {
 	}
 
 	@Bean
-	public ReactiveAuthenticationManager authenticationManager() {
-		User rob = new User("rob", "rob", AuthorityUtils.createAuthorityList("ROLE_USER"));
-		User admin = new User("admin", "admin", AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ROLE_USER"));
-		InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(Arrays.asList(admin, rob));
-		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-		authenticationProvider.setUserDetailsService(userDetailsService);
-		ProviderManager authenticationManager = new ProviderManager(Arrays.asList(authenticationProvider));
-		return new ReactiveAuthenticationManagerAdapter(authenticationManager);
+	public ReactiveAuthenticationManager authenticationManager(UserRepositoryUserDetailsRepository udr) {
+		return new UserDetailsAuthenticationManager(udr);
 	}
 
 }

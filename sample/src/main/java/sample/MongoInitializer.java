@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package sample;
 
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * @author Sebastien Deleuze
- */
-public interface ReactiveRepository<T> {
+@Configuration
+public class MongoInitializer implements SmartInitializingSingleton {
+	@Autowired
+	UserRepository users;
 
-	Mono<Void> insert(Publisher<T> elements);
-
-	Flux<T> list();
-
-	Mono<T> findById(String id);
+	@Override
+	public void afterSingletonsInstantiated() {
+		users.save(new User("rob", "rob", "Rob", "Winch")).block();
+		users.save(new User("admin", "admin", "Admin", "User")).block();
+	}
 
 }
