@@ -1,13 +1,14 @@
 package sample;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.web.client.reactive.ClientWebRequestPostProcessors.httpBasic;
-import static org.springframework.web.client.reactive.ClientWebRequestBuilders.get;
-import static org.springframework.web.client.reactive.ResponseExtractors.response;
+import static org.springframework.http.codec.BodyExtractors.toMono;
+import static org.springframework.web.client.reactive.ClientRequest.GET;
+import static org.springframework.web.client.reactive.ExchangeFilterFunctions.basicAuthentication;
 
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,9 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.reactive.ClientWebRequestPostProcessor;
-import org.springframework.web.client.reactive.DefaultClientWebRequestBuilder;
-import org.springframework.web.client.reactive.ResponseExtractor;
+import org.springframework.web.client.reactive.ClientRequest;
+import org.springframework.web.client.reactive.ClientRequest.HeadersBuilder;
+import org.springframework.web.client.reactive.ClientResponse;
+import org.springframework.web.client.reactive.ExchangeFilterFunction;
+import org.springframework.web.client.reactive.ExchangeFilterFunctions;
+import org.springframework.web.client.reactive.ExchangeFunction;
 import org.springframework.web.client.reactive.WebClient;
 
 import reactor.core.publisher.Mono;
@@ -37,121 +41,133 @@ public class SecurityTests {
 
 	@Before
 	public void setup() {
-		this.webClient = new WebClient(new ReactorClientHttpConnector());
+		this.webClient = WebClient
+				.builder(new ReactorClientHttpConnector())
+				.build();
 	}
 
 	@Test
 	public void basicRequired() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest())
-				.extract(mapStringString());
+		Mono<HttpStatus> response = this.webClient
+				.exchange(usersRequest().build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicWorks() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest().apply(robsCredentials()))
-				.extract(mapStringString());
+		ClientRequest<Void> request = usersRequest().build();
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
+		ExchangeFunction client = robsCredentials().apply(this.webClient::exchange);
+		Mono<HttpStatus> response = client.exchange(request)
+				.then(this::httpStatus);
+
+		assertThat(response.block()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void authorizationAdmin401() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(adminRequest().apply(robsCredentials()))
-				.extract(mapStringString());
+		ExchangeFunction client = robsCredentials().apply(this.webClient::exchange);
+		Mono<HttpStatus> response = client
+				.exchange(adminRequest().build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void authorizationAdmin200() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(adminRequest().apply(adminCredentials()))
-				.extract(mapStringString());
+		ExchangeFunction client = adminCredentials().apply(this.webClient::exchange);
+		Mono<HttpStatus> response = client
+				.exchange(adminRequest().build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest().apply(httpBasic("missing-user","rob")))
-				.extract(mapStringString());
+		ExchangeFunction client = basicAuthentication("missing-user", "password")
+				.apply(this.webClient::exchange);
+		Mono<HttpStatus> response = client
+				.exchange(adminRequest().build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest().apply(httpBasic("rob","invalid")))
-				.extract(mapStringString());
+		ExchangeFunction client = basicAuthentication("rob","invalid")
+				.apply(this.webClient::exchange);
+		Mono<HttpStatus> response = client
+				.exchange(adminRequest().build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicInvalidParts401() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest().header("Authorization", "Basic " + base64Encode("no colon")))
-				.extract(mapStringString());
+		Mono<HttpStatus> response = this.webClient
+				.exchange(usersRequest().header("Authorization", "Basic " + base64Encode("no colon")).build())
+				.then(this::httpStatus);
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void sessionWorks() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(usersRequest().apply(robsCredentials()))
-				.extract(mapStringString());
+		ExchangeFunction robsClient = robsCredentials()
+				.apply(this.webClient::exchange);
+		Mono<ClientResponse> response = robsClient
+				.exchange(usersRequest().build());
 
-		String session = response.block().getHeaders().getFirst("Set-Cookie");
+		String session = response.block().headers().asHttpHeaders().getFirst("Set-Cookie");
 
 		response = this.webClient
-				.perform(usersRequest().header("Cookie", session))
-				.extract(mapStringString());
+				.exchange(usersRequest().header("Cookie", session).build());
 
-		assertThat(response.block().getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block().statusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void me() throws Exception {
-		Mono<ResponseEntity<Map<String,String>>> response = this.webClient
-				.perform(meRequest().apply(robsCredentials()))
-				.extract(mapStringString());
+		ExchangeFunction robsClient = robsCredentials()
+				.apply(this.webClient::exchange);
+		Mono<Map<String,String>> response = robsClient
+				.exchange(meRequest().build())
+				.then( result -> result.body(toMono(ResolvableType.forClassWithGenerics(Map.class, String.class, String.class))));
 
-		assertThat(response.block().getBody()).hasSize(1).containsEntry("username", "rob");
+		assertThat(response.block()).hasSize(1).containsEntry("username", "rob");
 	}
 
-	private ClientWebRequestPostProcessor robsCredentials() {
-		return httpBasic("rob","rob");
+	private ExchangeFilterFunction robsCredentials() {
+		return basicAuthentication("rob","rob");
 	}
 
-	private ClientWebRequestPostProcessor adminCredentials() {
-		return httpBasic("admin","admin");
+	private ExchangeFilterFunction adminCredentials() {
+		return basicAuthentication("admin","admin");
 	}
 
-	private DefaultClientWebRequestBuilder adminRequest() {
-		return get("http://localhost:{port}/admin", port).accept(MediaType.APPLICATION_JSON);
+	private HeadersBuilder<?> adminRequest() {
+		return GET("http://localhost:{port}/admin", port).accept(MediaType.APPLICATION_JSON);
 	}
 
-	private DefaultClientWebRequestBuilder usersRequest() {
-		return get("http://localhost:{port}/users", port).accept(MediaType.APPLICATION_JSON);
+	private HeadersBuilder<?> usersRequest() {
+		return GET("http://localhost:{port}/users", port).accept(MediaType.APPLICATION_JSON);
 	}
 
-	private DefaultClientWebRequestBuilder meRequest() {
-		return get("http://localhost:{port}/me",port).accept(MediaType.APPLICATION_JSON);
+	private HeadersBuilder<?>  meRequest() {
+		return GET("http://localhost:{port}/me",port).accept(MediaType.APPLICATION_JSON);
 	}
 
 	private String base64Encode(String value) {
 		return Base64.getEncoder().encodeToString(value.getBytes(Charset.defaultCharset()));
 	}
 
-	private ResponseExtractor<Mono<ResponseEntity<Map<String, String>>>> mapStringString() {
-		return response(ResolvableType.forClassWithGenerics(Map.class, String.class, String.class));
+	private Mono<HttpStatus> httpStatus(ClientResponse response) {
+		return Mono.just(response.statusCode());
 	}
 }

@@ -19,14 +19,14 @@ import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
-import org.springframework.ui.ModelMap;
+import org.springframework.web.reactive.result.method.BindingContext;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
@@ -39,11 +39,11 @@ public class AuthenticationPrincipalArgumentResolver implements HandlerMethodArg
 	}
 
 	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter, ModelMap model, ServerWebExchange exchange) {
+	public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext,
+			ServerWebExchange exchange) {
 		return repository.load(exchange).then( sc -> {
 			Authentication authentication = sc.getAuthentication();
 			return authentication == null ? Mono.empty() : Mono.just(authentication.getPrincipal());
 		});
 	}
-
 }
