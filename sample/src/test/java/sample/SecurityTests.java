@@ -8,7 +8,6 @@ import static org.springframework.web.client.reactive.ExchangeFilterFunctions.ba
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,14 +17,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.reactive.ClientRequest;
 import org.springframework.web.client.reactive.ClientRequest.HeadersBuilder;
 import org.springframework.web.client.reactive.ClientResponse;
 import org.springframework.web.client.reactive.ExchangeFilterFunction;
-import org.springframework.web.client.reactive.ExchangeFilterFunctions;
 import org.springframework.web.client.reactive.ExchangeFunction;
 import org.springframework.web.client.reactive.WebClient;
 
