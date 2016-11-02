@@ -32,7 +32,7 @@ import org.springframework.security.web.reactive.result.method.AuthenticationPri
 import org.springframework.security.web.server.AuthenticationEntryPoint;
 import org.springframework.security.web.server.AuthenticationWebFilter;
 import org.springframework.security.web.server.AuthorizationWebFilter;
-import org.springframework.security.web.server.HttpBasicAuthenticationFactory;
+import org.springframework.security.web.server.HttpBasicAuthenticationConverter;
 import org.springframework.security.web.server.SecurityContextRepositoryWebFilter;
 import org.springframework.security.web.server.WebFilterChainFilter;
 import org.springframework.security.web.server.access.expression.ExpressionReactiveAccessDecisionManager;
@@ -83,7 +83,7 @@ public class Application {
 		AuthenticationWebFilter authenticationFilter = new AuthenticationWebFilter();
 		authenticationFilter.setAuthenticationManager(authenticationManager);
 		authenticationFilter.setEntryPoint(entryPoint());
-		authenticationFilter.setAuthenticationConverter(new HttpBasicAuthenticationFactory());
+		authenticationFilter.setAuthenticationConverter(new HttpBasicAuthenticationConverter());
 		authenticationFilter.setSecurityContextRepository(securityContextRepository());
 		return authenticationFilter;
 	}

@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
  * @author Rob Winch
  * @since 5.0
  */
-public class HttpBasicAuthenticationFactory implements Converter<ServerWebExchange,Mono<Authentication>> {
+public class HttpBasicAuthenticationConverter implements Converter<ServerWebExchange,Mono<Authentication>> {
 
 	@Override
 	public Mono<Authentication> convert(ServerWebExchange exchange) {
