@@ -30,6 +30,7 @@ import org.springframework.security.web.server.AuthenticationEntryPoint;
 import org.springframework.security.web.server.AuthenticationWebFilter;
 import org.springframework.security.web.server.AuthorizationWebFilter;
 import org.springframework.security.web.server.HttpBasicAuthenticationFactory;
+import org.springframework.security.web.server.SecurityContextRepositoryWebFilter;
 import org.springframework.security.web.server.access.expression.ExpressionReactiveAccessDecisionManager;
 import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
@@ -59,6 +60,11 @@ public class Application {
 				.add(anyExchange(), new SecurityConfig("authenticated"))
 				.build();
 		return new AuthorizationWebFilter(manager, metadataSource );
+	}
+
+	@Bean
+	public SecurityContextRepositoryWebFilter securityContextRepositoryWebFilter() {
+		return new SecurityContextRepositoryWebFilter(securityContextRepository());
 	}
 
 	@Bean

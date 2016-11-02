@@ -21,10 +21,9 @@ import java.util.function.Function;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.ReactiveAccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
 import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
-import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -38,8 +37,6 @@ import reactor.core.publisher.Mono;
  * @since 5.0
  */
 public class AuthorizationWebFilter implements WebFilter {
-	WebSessionSecurityContextRepository securityContextRepository = new WebSessionSecurityContextRepository();
-
 	AuthenticationEntryPoint entryPoint = new HttpBasicAuthenticationEntryPoint();
 
 	ServerWebExchangeMetadataSource source;
@@ -54,8 +51,9 @@ public class AuthorizationWebFilter implements WebFilter {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		return securityContextRepository.load(exchange)
-			.map(SecurityContext::getAuthentication)
+		return exchange.getPrincipal()
+			.filter(p -> p instanceof Authentication)
+			.then( p-> Mono.just((Authentication) p))
 			.filter(authentication -> {
 				return authentication != null && authentication.isAuthenticated();
 			})

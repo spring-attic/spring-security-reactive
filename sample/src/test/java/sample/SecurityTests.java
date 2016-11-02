@@ -140,6 +140,17 @@ public class SecurityTests {
 		assertThat(response.block()).hasSize(1).containsEntry("username", "rob");
 	}
 
+	@Test
+	public void principal() throws Exception {
+		ExchangeFunction robsClient = robsCredentials()
+				.apply(this.webClient::exchange);
+		Mono<Map<String,String>> response = robsClient
+				.exchange(principalRequest().build())
+				.then( result -> result.body(toMono(ResolvableType.forClassWithGenerics(Map.class, String.class, String.class))));
+
+		assertThat(response.block()).hasSize(1).containsEntry("username", "rob");
+	}
+
 	private ExchangeFilterFunction robsCredentials() {
 		return basicAuthentication("rob","rob");
 	}
@@ -149,15 +160,23 @@ public class SecurityTests {
 	}
 
 	private HeadersBuilder<?> adminRequest() {
-		return GET("http://localhost:{port}/admin", port).accept(MediaType.APPLICATION_JSON);
+		return get("admin");
 	}
 
 	private HeadersBuilder<?> usersRequest() {
-		return GET("http://localhost:{port}/users", port).accept(MediaType.APPLICATION_JSON);
+		return get("users");
 	}
 
 	private HeadersBuilder<?>  meRequest() {
-		return GET("http://localhost:{port}/me",port).accept(MediaType.APPLICATION_JSON);
+		return get("me");
+	}
+
+	private HeadersBuilder<?>  principalRequest() {
+		return get("principal");
+	}
+
+	private HeadersBuilder<?>  get(String path) {
+		return GET("http://localhost:{port}/{path}", port, path) .accept(MediaType.APPLICATION_JSON);
 	}
 
 	private String base64Encode(String value) {

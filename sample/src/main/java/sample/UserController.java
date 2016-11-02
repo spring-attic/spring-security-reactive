@@ -16,6 +16,7 @@
 
 package sample;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
 
@@ -56,6 +57,11 @@ public class UserController {
 	@RequestMapping("/me")
 	public Map<String,String> me(@AuthenticationPrincipal UserDetails user) {
 		return Collections.singletonMap("username", user.getUsername());
+	}
+
+	@RequestMapping("/principal")
+	public Map<String,String> principal(Principal principal) {
+		return Collections.singletonMap("username", principal.getName());
 	}
 
 	@RequestMapping("/admin")
