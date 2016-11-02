@@ -21,11 +21,11 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
-public class WebSessionSecurityContextRepository {
+public class WebSessionSecurityContextRepository implements SecurityContextRepository {
 	final String SESSION_ATTR = "USER";
 
 	public Mono<Void> save(ServerWebExchange exchange, SecurityContext context) {
