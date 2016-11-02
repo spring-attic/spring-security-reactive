@@ -39,7 +39,7 @@ public class ServerWebExchangeMetadataSource {
 
 	public Flux<ConfigAttribute> getConfigAttributes(ServerWebExchange exchange) {
 		for(Map.Entry<ServerWebExchangeMatcher,SecurityConfig> entry : mappings.entrySet()) {
-			if(entry.getKey().matches(exchange)) {
+			if(entry.getKey().matches(exchange).isMatch()) {
 				return Flux.just(entry.getValue());
 			}
 		}

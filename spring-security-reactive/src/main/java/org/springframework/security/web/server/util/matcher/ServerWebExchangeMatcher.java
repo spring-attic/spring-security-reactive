@@ -15,6 +15,9 @@
  */
 package org.springframework.security.web.server.util.matcher;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -24,5 +27,25 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface ServerWebExchangeMatcher {
 
-	boolean matches(ServerWebExchange exchange);
+	MatchResult matches(ServerWebExchange exchange);
+
+	class MatchResult {
+		public static final MatchResult NO_MATCH = new MatchResult(false, Collections.emptyMap());
+
+		private final boolean match;
+		private final Map<String,Object> variables;
+
+		public MatchResult(boolean match, Map<String, Object> variables) {
+			this.match = match;
+			this.variables = variables;
+		}
+
+		public boolean isMatch() {
+			return match;
+		}
+
+		public Map<String,Object> getVariables() {
+			return variables;
+		}
+	}
 }

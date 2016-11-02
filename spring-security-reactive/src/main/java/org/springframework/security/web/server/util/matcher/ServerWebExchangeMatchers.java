@@ -15,9 +15,13 @@
  */
 package org.springframework.security.web.server.util.matcher;
 
+import java.util.Collections;
+
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult;
 import org.springframework.web.server.ServerWebExchange;
 
 public abstract class ServerWebExchangeMatchers {
+	private static final MatchResult ANY_MATCH = new MatchResult(true, Collections.emptyMap());
 
 	public static ServerWebExchangeMatcher antMatchers(String pattern) {
 		return new PathMatcherServerWebExchangeMatcher(pattern);
@@ -26,8 +30,8 @@ public abstract class ServerWebExchangeMatchers {
 	public static ServerWebExchangeMatcher anyExchange() {
 		return new ServerWebExchangeMatcher() {
 			@Override
-			public boolean matches(ServerWebExchange exchange) {
-				return true;
+			public MatchResult matches(ServerWebExchange exchange) {
+				return ANY_MATCH;
 			}
 		};
 	}

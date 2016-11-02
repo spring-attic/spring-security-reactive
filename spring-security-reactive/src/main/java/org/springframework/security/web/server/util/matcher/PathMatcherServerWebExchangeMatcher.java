@@ -15,6 +15,9 @@
  */
 package org.springframework.security.web.server.util.matcher;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
@@ -42,13 +45,19 @@ public final class PathMatcherServerWebExchangeMatcher implements ServerWebExcha
 	}
 
 	@Override
-	public boolean matches(ServerWebExchange exchange) {
+	public MatchResult matches(ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		if(this.method != null && !this.method.equals(request.getMethod())) {
-			return false;
+			return MatchResult.NO_MATCH;
 		}
 		String path = helper.getLookupPathForRequest(exchange);
-		return pathMatcher.match(pattern, path);
+		boolean match = pathMatcher.match(pattern, path);
+		if(!match) {
+			return MatchResult.NO_MATCH;
+		}
+		Map<String,String> pathVariables = pathMatcher.extractUriTemplateVariables(pattern, path);
+		Map<String,Object> variables = new HashMap<>(pathVariables);
+		return new MatchResult(match, variables);
 	}
 
 	public void setPathMatcher(PathMatcher pathMatcher) {
