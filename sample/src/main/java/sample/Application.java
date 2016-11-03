@@ -16,29 +16,16 @@
 
 package sample;
 
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.antMatchers;
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.anyExchange;
-
-import java.util.ArrayList;
-import java.util.List;
+import static org.springframework.security.config.web.server.HttpSecurity.http;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.*;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsAuthenticationManager;
+import org.springframework.security.config.web.server.HttpSecurity;
 import org.springframework.security.web.reactive.result.method.AuthenticationPrincipalArgumentResolver;
-import org.springframework.security.web.server.AuthenticationEntryPoint;
-import org.springframework.security.web.server.AuthenticationWebFilter;
-import org.springframework.security.web.server.AuthorizationWebFilter;
-import org.springframework.security.web.server.HttpBasicAuthenticationConverter;
-import org.springframework.security.web.server.SecurityContextRepositoryWebFilter;
-import org.springframework.security.web.server.WebFilterChainFilter;
-import org.springframework.security.web.server.access.expression.ExpressionReactiveAccessDecisionManager;
-import org.springframework.security.web.server.access.expression.ServerWebExchangeMetadataSource;
-import org.springframework.security.web.server.authentication.www.HttpBasicAuthenticationEntryPoint;
-import org.springframework.security.web.server.context.WebSessionSecurityContextRepository;
 import org.springframework.web.server.WebFilter;
 
 /**
@@ -57,48 +44,19 @@ public class Application {
 	}
 
 	@Bean
-	WebFilterChainFilter springSecurityFilterChain(ReactiveAuthenticationManager manager) throws Exception {
-		List<WebFilter> filters = new ArrayList<>();
-		filters.add(securityContextRepositoryWebFilter());
-		filters.add(authenticationFilter(manager));
-		filters.add(authorizationFilter());
-		return new WebFilterChainFilter(filters);
-	}
-
-	private AuthorizationWebFilter authorizationFilter() {
-		ExpressionReactiveAccessDecisionManager manager = new ExpressionReactiveAccessDecisionManager();
-		ServerWebExchangeMetadataSource metadataSource = ServerWebExchangeMetadataSource
-				.builder()
-				.add(antMatchers("/admin/**"), new SecurityConfig("hasRole('ADMIN')"))
-				.add(anyExchange(), new SecurityConfig("authenticated"))
-				.build();
-		return new AuthorizationWebFilter(manager, metadataSource );
-	}
-
-	private SecurityContextRepositoryWebFilter securityContextRepositoryWebFilter() {
-		return new SecurityContextRepositoryWebFilter(securityContextRepository());
-	}
-
-	private AuthenticationWebFilter authenticationFilter(ReactiveAuthenticationManager authenticationManager) {
-		AuthenticationWebFilter authenticationFilter = new AuthenticationWebFilter();
-		authenticationFilter.setAuthenticationManager(authenticationManager);
-		authenticationFilter.setEntryPoint(entryPoint());
-		authenticationFilter.setAuthenticationConverter(new HttpBasicAuthenticationConverter());
-		authenticationFilter.setSecurityContextRepository(securityContextRepository());
-		return authenticationFilter;
-	}
-
-	private WebSessionSecurityContextRepository securityContextRepository() {
-		return new WebSessionSecurityContextRepository();
-	}
-
-	private AuthenticationEntryPoint entryPoint() {
-		return new HttpBasicAuthenticationEntryPoint();
+	WebFilter springSecurityFilterChain(ReactiveAuthenticationManager manager) throws Exception {
+		HttpSecurity http = http();
+		// FIXME use BeanPostProcessor to set the manager
+		http.authenticationManager(manager);
+		http.httpBasic();
+		http.authorizeRequests()
+				.matchers(antMatchers("/admin/**")).hasRole("ADMIN")
+				.matchers(anyExchange()).authenticated();
+		return http.build();
 	}
 
 	@Bean
 	public ReactiveAuthenticationManager authenticationManager(UserRepositoryUserDetailsRepository udr) {
 		return new UserDetailsAuthenticationManager(udr);
 	}
-
 }
