@@ -20,11 +20,12 @@ import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Mono;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 5.0
  */
 public interface ReactiveAuthenticationManager {
 
+	// FIXME @param authentication should be different type (i.e. AuthenticationRequest)
 	Mono<Authentication> authenticate(Authentication authentication);
 }
