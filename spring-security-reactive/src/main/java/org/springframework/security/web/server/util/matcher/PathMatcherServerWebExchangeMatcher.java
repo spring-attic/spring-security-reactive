@@ -24,7 +24,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.HttpRequestPathHelper;
+import org.springframework.web.server.support.HttpRequestPathHelper;
 
 public final class PathMatcherServerWebExchangeMatcher implements ServerWebExchangeMatcher {
 	private HttpRequestPathHelper helper = new HttpRequestPathHelper();
