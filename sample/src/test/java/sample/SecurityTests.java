@@ -21,6 +21,7 @@ import static org.springframework.web.client.reactive.ClientRequest.GET;
 import static org.springframework.web.client.reactive.ExchangeFilterFunctions.basicAuthentication;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
 
@@ -46,6 +47,10 @@ import reactor.core.publisher.Mono;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SecurityTests {
+	private static final Duration ONE_SECOND = Duration.ofSeconds(1);
+
+	private static final ResolvableType MAP_OF_STRING_STRING = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
+
 	private WebClient webClient;
 
 	@LocalServerPort
@@ -64,7 +69,7 @@ public class SecurityTests {
 				.exchange(usersRequest().build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -75,7 +80,7 @@ public class SecurityTests {
 		Mono<HttpStatus> response = client.exchange(request)
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
@@ -85,7 +90,7 @@ public class SecurityTests {
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -95,7 +100,7 @@ public class SecurityTests {
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
@@ -106,7 +111,7 @@ public class SecurityTests {
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -117,7 +122,7 @@ public class SecurityTests {
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -126,7 +131,7 @@ public class SecurityTests {
 				.exchange(usersRequest().header("Authorization", "Basic " + base64Encode("no colon")).build())
 				.then(this::httpStatus);
 
-		assertThat(response.block()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
@@ -136,12 +141,12 @@ public class SecurityTests {
 		Mono<ClientResponse> response = robsClient
 				.exchange(usersRequest().build());
 
-		String session = response.block().headers().asHttpHeaders().getFirst("Set-Cookie");
+		String session = response.block(ONE_SECOND).headers().asHttpHeaders().getFirst("Set-Cookie");
 
 		response = this.webClient
 				.exchange(usersRequest().header("Cookie", session).build());
 
-		assertThat(response.block().statusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.block(ONE_SECOND).statusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
@@ -150,9 +155,9 @@ public class SecurityTests {
 				.apply(this.webClient::exchange);
 		Mono<Map<String,String>> response = robsClient
 				.exchange(meRequest().build())
-				.then( result -> result.body(toMono(ResolvableType.forClassWithGenerics(Map.class, String.class, String.class))));
+				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
-		assertThat(response.block()).hasSize(1).containsEntry("username", "rob");
+		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
 	}
 
 	@Test
@@ -161,9 +166,9 @@ public class SecurityTests {
 				.apply(this.webClient::exchange);
 		Mono<Map<String,String>> response = robsClient
 				.exchange(principalRequest().build())
-				.then( result -> result.body(toMono(ResolvableType.forClassWithGenerics(Map.class, String.class, String.class))));
+				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
-		assertThat(response.block()).hasSize(1).containsEntry("username", "rob");
+		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
 	}
 
 	private ExchangeFilterFunction robsCredentials() {
