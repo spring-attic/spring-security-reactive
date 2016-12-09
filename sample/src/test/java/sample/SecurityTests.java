@@ -35,11 +35,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.reactive.ClientRequest;
 import org.springframework.web.client.reactive.ClientRequest.HeadersBuilder;
 import org.springframework.web.client.reactive.ClientResponse;
 import org.springframework.web.client.reactive.ExchangeFilterFunction;
-import org.springframework.web.client.reactive.ExchangeFunction;
 import org.springframework.web.client.reactive.WebClient;
 
 import reactor.core.publisher.Mono;
@@ -74,10 +72,9 @@ public class SecurityTests {
 
 	@Test
 	public void basicWorks() throws Exception {
-		ClientRequest<Void> request = usersRequest().build();
-
-		ExchangeFunction client = robsCredentials().apply(this.webClient::exchange);
-		Mono<HttpStatus> response = client.exchange(request)
+		Mono<HttpStatus> response = webClient
+				.filter(robsCredentials())
+				.exchange(usersRequest().build())
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
@@ -85,8 +82,8 @@ public class SecurityTests {
 
 	@Test
 	public void authorizationAdmin401() throws Exception {
-		ExchangeFunction client = robsCredentials().apply(this.webClient::exchange);
-		Mono<HttpStatus> response = client
+		Mono<HttpStatus> response = this.webClient
+				.filter(robsCredentials())
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
@@ -95,8 +92,8 @@ public class SecurityTests {
 
 	@Test
 	public void authorizationAdmin200() throws Exception {
-		ExchangeFunction client = adminCredentials().apply(this.webClient::exchange);
-		Mono<HttpStatus> response = client
+		Mono<HttpStatus> response = this.webClient
+				.filter(adminCredentials())
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
@@ -105,9 +102,8 @@ public class SecurityTests {
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		ExchangeFunction client = basicAuthentication("missing-user", "password")
-				.apply(this.webClient::exchange);
-		Mono<HttpStatus> response = client
+		Mono<HttpStatus> response = this.webClient
+				.filter(basicAuthentication("missing-user", "password"))
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
@@ -116,9 +112,8 @@ public class SecurityTests {
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		ExchangeFunction client = basicAuthentication("rob","invalid")
-				.apply(this.webClient::exchange);
-		Mono<HttpStatus> response = client
+		Mono<HttpStatus> response = this.webClient
+				.filter(basicAuthentication("rob","invalid"))
 				.exchange(adminRequest().build())
 				.then(this::httpStatus);
 
@@ -136,9 +131,8 @@ public class SecurityTests {
 
 	@Test
 	public void sessionWorks() throws Exception {
-		ExchangeFunction robsClient = robsCredentials()
-				.apply(this.webClient::exchange);
-		Mono<ClientResponse> response = robsClient
+		Mono<ClientResponse> response = this.webClient
+				.filter(robsCredentials())
 				.exchange(usersRequest().build());
 
 		String session = response.block(ONE_SECOND).headers().asHttpHeaders().getFirst("Set-Cookie");
@@ -151,9 +145,8 @@ public class SecurityTests {
 
 	@Test
 	public void me() throws Exception {
-		ExchangeFunction robsClient = robsCredentials()
-				.apply(this.webClient::exchange);
-		Mono<Map<String,String>> response = robsClient
+		Mono<Map<String,String>> response = this.webClient
+				.filter(robsCredentials())
 				.exchange(meRequest().build())
 				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
@@ -162,9 +155,8 @@ public class SecurityTests {
 
 	@Test
 	public void principal() throws Exception {
-		ExchangeFunction robsClient = robsCredentials()
-				.apply(this.webClient::exchange);
-		Mono<Map<String,String>> response = robsClient
+		Mono<Map<String,String>> response = this.webClient
+				.filter(robsCredentials())
 				.exchange(principalRequest().build())
 				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
