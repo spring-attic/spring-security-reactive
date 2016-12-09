@@ -49,4 +49,5 @@ dependencies {
 	compile "org.mongodb:mongo-java-driver:3.2.2"
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.springframework.security:spring-security-test"
+	testCompile "io.projectreactor.addons:reactor-test:3.0.3.RELEASE"
 }
