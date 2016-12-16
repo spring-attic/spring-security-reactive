@@ -15,10 +15,10 @@
  */
 package sample;
 
+import static org.springframework.web.reactive.function.BodyExtractors.toMono;
+import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
+import static org.springframework.web.reactive.function.client.ClientRequest.GET;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.codec.BodyExtractors.toMono;
-import static org.springframework.web.client.reactive.ClientRequest.GET;
-import static org.springframework.web.client.reactive.ExchangeFilterFunctions.basicAuthentication;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -35,10 +35,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.reactive.ClientRequest.HeadersBuilder;
-import org.springframework.web.client.reactive.ClientResponse;
-import org.springframework.web.client.reactive.ExchangeFilterFunction;
-import org.springframework.web.client.reactive.WebClient;
+import org.springframework.web.reactive.function.client.ClientRequest.HeadersBuilder;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Mono;
 
