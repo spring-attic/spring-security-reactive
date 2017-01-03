@@ -7,7 +7,7 @@ jar {
 	version = '0.0.1-SNAPSHOT'
 }
 
-ext['reactor.version'] = '3.0.0.BUILD-SNAPSHOT'
+ext['reactor.version'] = '3.0.4.RELEASE'
 ext.springVersion = '5.0.0.BUILD-SNAPSHOT'
 ext.springSecurityVersion = '4.1.2.RELEASE'
 ext.assertjVersion = '3.5.2'

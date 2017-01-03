@@ -21,7 +21,7 @@ jar {
 	version = '0.0.1-SNAPSHOT'
 }
 
-ext['reactor.version'] = '3.0.0.BUILD-SNAPSHOT'
+ext['reactor.version'] = '3.0.4.RELEASE'
 ext['spring.version'] = '5.0.0.BUILD-SNAPSHOT'
 ext['assertj.version'] = '3.5.2'
 ext.reactorNettyVersion = '0.6.0.BUILD-SNAPSHOT'
