@@ -43,9 +43,7 @@ public class PathMatcherServerWebExchangeMatcherTests {
 
 	@Before
 	public void setup() {
-		MockServerHttpRequest request = new MockServerHttpRequest();
-		request.setUri("/path");
-		request.setHttpMethod(HttpMethod.POST);
+		MockServerHttpRequest request = MockServerHttpRequest.post("/path").build();
 		MockServerHttpResponse response = new MockServerHttpResponse();
 		DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
 		exchange = new DefaultServerWebExchange(request, response, sessionManager);
