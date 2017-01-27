@@ -91,6 +91,19 @@ public class SecurityTests {
 	}
 
 	@Test
+	public void authorizationAdmin401EmptyBody() throws Exception {
+		ClientResponse response = this.webClient
+				.filter(robsCredentials())
+				.exchange(adminRequest().build())
+				.block(ONE_SECOND);
+
+		response.body((inputMessage, context) -> {
+			assertThat(inputMessage.getBody().count().block()).isZero();
+			return Mono.empty();
+		});
+	}
+
+	@Test
 	public void authorizationAdmin200() throws Exception {
 		Mono<HttpStatus> response = this.webClient
 				.filter(adminCredentials())

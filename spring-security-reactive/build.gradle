@@ -3,7 +3,7 @@ import java.security.cert.Extension;
 apply plugin: 'java'
 
 jar {
-	baseName = 'spring-reactive-security'
+	baseName = 'spring-security-reactive'
 	version = '0.0.1-SNAPSHOT'
 }
 
