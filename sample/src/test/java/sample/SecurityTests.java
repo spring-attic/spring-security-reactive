@@ -81,6 +81,7 @@ public class SecurityTests {
 	@Test
 	public void basicWorks() throws Exception {
 		Mono<HttpStatus> response =  this.rest
+				.filter(robsCredentials())
 				.get()
 				.uri("/users")
 				.accept(MediaType.APPLICATION_JSON)
