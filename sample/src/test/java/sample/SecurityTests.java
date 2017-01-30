@@ -34,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -58,6 +59,13 @@ public class SecurityTests {
 	public void setup() {
 		WebClient webClient = WebClient
 				.builder(new ReactorClientHttpConnector())
+				.filter((request, next) -> {
+					ClientRequest<Void> json = ClientRequest
+							.from(request)
+							.header("Accept", MediaType.APPLICATION_JSON_VALUE)
+							.build();
+					return next.exchange(json);
+				})
 				.build();
 
 		this.rest = WebClientOperations
@@ -71,7 +79,6 @@ public class SecurityTests {
 		Mono<HttpStatus> response = this.rest
 				.get()
 				.uri("/users")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -84,7 +91,6 @@ public class SecurityTests {
 				.filter(robsCredentials())
 				.get()
 				.uri("/users")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -97,7 +103,6 @@ public class SecurityTests {
 				.filter(robsCredentials())
 				.get()
 				.uri("/admin")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -110,7 +115,6 @@ public class SecurityTests {
 				.filter(adminCredentials())
 				.get()
 				.uri("/admin")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -123,7 +127,6 @@ public class SecurityTests {
 				.filter(basicAuthentication("missing-user", "password"))
 				.get()
 				.uri("/admin")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -136,7 +139,6 @@ public class SecurityTests {
 				.filter(basicAuthentication("rob", "invalid"))
 				.get()
 				.uri("/admin")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.then(this::httpStatus);
 
@@ -148,7 +150,6 @@ public class SecurityTests {
 		Mono<HttpStatus> response = this.rest
 				.get()
 				.uri("/admin")
-				.accept(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Basic " + base64Encode("no colon"))
 				.exchange()
 				.then(this::httpStatus);
@@ -162,7 +163,6 @@ public class SecurityTests {
 				.filter(robsCredentials())
 				.get()
 				.uri("/users")
-				.accept(MediaType.APPLICATION_JSON)
 				.exchange();
 
 		String session = response.block(ONE_SECOND).headers().asHttpHeaders().getFirst("Set-Cookie");
@@ -170,7 +170,6 @@ public class SecurityTests {
 		response = this.rest
 				.get()
 				.uri("/users")
-				.accept(MediaType.APPLICATION_JSON)
 				.header("Cookie", session)
 				.exchange();
 
