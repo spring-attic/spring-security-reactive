@@ -1,17 +1,10 @@
-import java.security.cert.Extension;
-
 apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
 
 jar {
 	baseName = 'spring-reactive-security'
 	version = '0.0.1-SNAPSHOT'
 }
-
-ext['reactor.version'] = '3.0.4.RELEASE'
-ext.springVersion = '5.0.0.BUILD-SNAPSHOT'
-ext.springSecurityVersion = '4.1.2.RELEASE'
-ext.assertjVersion = '3.5.2'
-ext.junitVersion = '4.12'
 
 repositories {
 	mavenCentral()
@@ -19,12 +12,18 @@ repositories {
 	maven { url "https://repo.spring.io/libs-snapshot" }
 }
 
+dependencyManagement {
+	imports {
+		mavenBom 'io.spring.platform:platform-bom:Cairo-BUILD-SNAPSHOT'
+	}
+}
+
 dependencies {
 	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
-	compile "org.springframework:spring-web-reactive:${springVersion}"
-	compile "org.springframework.security:spring-security-web:${springSecurityVersion}"
-	testCompile "junit:junit:${junitVersion}"
-	testCompile 'org.mockito:mockito-core:1.10.19'
-	testCompile "org.springframework:spring-test:${springVersion}"
-	testCompile "org.assertj:assertj-core:${assertjVersion}"
+	compile "org.springframework:spring-web-reactive"
+	compile "org.springframework.security:spring-security-web"
+	testCompile "junit:junit"
+	testCompile 'org.mockito:mockito-core'
+	testCompile "org.springframework:spring-test"
+	testCompile "org.assertj:assertj-core"
 }

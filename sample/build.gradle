@@ -3,7 +3,6 @@ buildscript {
 		springBootVersion = '2.0.0.BUILD-SNAPSHOT'
 	}
 	repositories {
-		mavenCentral()
 		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 	dependencies {
@@ -12,42 +11,33 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 
-tasks.findByPath("artifactoryPublish")?.enabled = false
-
 jar {
-	baseName = 'spring-reactive-security-sample'
+	baseName = 'demo'
 	version = '0.0.1-SNAPSHOT'
 }
 
-ext['reactor.version'] = '3.0.4.RELEASE'
-ext['spring.version'] = '5.0.0.BUILD-SNAPSHOT'
-ext['assertj.version'] = '3.5.2'
-ext.reactorNettyVersion = '0.6.0.BUILD-SNAPSHOT'
-
+sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
-	maven { url 'https://oss.jfrog.org/libs-snapshot' }  // RxNetty 0.5.x snapshots
 	maven { url "https://repo.spring.io/libs-snapshot" }
-	maven { url "https://repo.spring.io/milestone" }
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot.experimental:spring-boot-dependencies-web-reactive:0.1.0.BUILD-SNAPSHOT"
+	}
 }
 
 dependencies {
-	// Use Tomcat by default
 	compile project(':spring-security-reactive')
-	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
+	compile('org.springframework.boot.experimental:spring-boot-starter-web-reactive')
 	compile "org.springframework.boot:spring-boot-starter-data-mongodb"
+	compile "org.mongodb:mongodb-driver-reactivestreams"
 	compile "de.flapdoodle.embed:de.flapdoodle.embed.mongo"
-	compile "io.projectreactor.ipc:reactor-netty:${reactorNettyVersion}"
-	compile "io.netty:netty-buffer:4.1.4.Final"
 	compile "org.springframework.boot:spring-boot-starter-security"
-	compile "org.springframework.data:spring-data-commons:2.0.0.BUILD-SNAPSHOT"
-	compile "org.springframework.data:spring-data-mongodb:2.0.0.BUILD-SNAPSHOT"
-	compile "org.mongodb:mongodb-driver-reactivestreams:1.2.0"
-	compile "org.mongodb:mongo-java-driver:3.4.0"
-	testCompile "org.springframework.boot:spring-boot-starter-test"
-	testCompile "org.springframework.security:spring-security-test"
-	testCompile "io.projectreactor.addons:reactor-test:3.0.3.RELEASE"
+	testCompile "io.projectreactor.ipc:reactor-netty"
+	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
