@@ -15,10 +15,9 @@
  */
 package sample;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
-import static org.springframework.web.reactive.function.client.ClientRequest.GET;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -35,10 +34,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientRequest.HeadersBuilder;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientOperations;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import reactor.core.publisher.Mono;
 
@@ -49,22 +49,30 @@ public class SecurityTests {
 
 	private static final ResolvableType MAP_OF_STRING_STRING = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
 
-	private WebClient webClient;
+	private WebClientOperations rest;
 
 	@LocalServerPort
 	private int port;
 
 	@Before
 	public void setup() {
-		this.webClient = WebClient
+		WebClient webClient = WebClient
 				.builder(new ReactorClientHttpConnector())
+				.build();
+
+		this.rest = WebClientOperations
+				.builder(webClient)
+				.uriBuilderFactory(new DefaultUriBuilderFactory("http://localhost:"+ port))
 				.build();
 	}
 
 	@Test
 	public void basicRequired() throws Exception {
-		Mono<HttpStatus> response = this.webClient
-				.exchange(usersRequest().build())
+		Mono<HttpStatus> response = this.rest
+				.get()
+				.uri("/users")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -72,9 +80,11 @@ public class SecurityTests {
 
 	@Test
 	public void basicWorks() throws Exception {
-		Mono<HttpStatus> response = webClient
-				.filter(robsCredentials())
-				.exchange(usersRequest().build())
+		Mono<HttpStatus> response =  this.rest
+				.get()
+				.uri("/users")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
@@ -82,9 +92,12 @@ public class SecurityTests {
 
 	@Test
 	public void authorizationAdmin401() throws Exception {
-		Mono<HttpStatus> response = this.webClient
+		Mono<HttpStatus> response = this.rest
 				.filter(robsCredentials())
-				.exchange(adminRequest().build())
+				.get()
+				.uri("/admin")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -92,9 +105,12 @@ public class SecurityTests {
 
 	@Test
 	public void authorizationAdmin200() throws Exception {
-		Mono<HttpStatus> response = this.webClient
+		Mono<HttpStatus> response = this.rest
 				.filter(adminCredentials())
-				.exchange(adminRequest().build())
+				.get()
+				.uri("/admin")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
@@ -102,9 +118,12 @@ public class SecurityTests {
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		Mono<HttpStatus> response = this.webClient
+		Mono<HttpStatus> response = this.rest
 				.filter(basicAuthentication("missing-user", "password"))
-				.exchange(adminRequest().build())
+				.get()
+				.uri("/admin")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -112,18 +131,25 @@ public class SecurityTests {
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		Mono<HttpStatus> response = this.webClient
-				.filter(basicAuthentication("rob","invalid"))
-				.exchange(adminRequest().build())
+		Mono<HttpStatus> response = this.rest
+				.filter(basicAuthentication("rob", "invalid"))
+				.get()
+				.uri("/admin")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
-	@Test
+	@Test 
 	public void basicInvalidParts401() throws Exception {
-		Mono<HttpStatus> response = this.webClient
-				.exchange(usersRequest().header("Authorization", "Basic " + base64Encode("no colon")).build())
+		Mono<HttpStatus> response = this.rest
+				.get()
+				.uri("/admin")
+				.accept(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Basic " + base64Encode("no colon"))
+				.exchange()
 				.then(this::httpStatus);
 
 		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -131,23 +157,32 @@ public class SecurityTests {
 
 	@Test
 	public void sessionWorks() throws Exception {
-		Mono<ClientResponse> response = this.webClient
+		Mono<ClientResponse> response = this.rest
 				.filter(robsCredentials())
-				.exchange(usersRequest().build());
+				.get()
+				.uri("/users")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange();
 
 		String session = response.block(ONE_SECOND).headers().asHttpHeaders().getFirst("Set-Cookie");
 
-		response = this.webClient
-				.exchange(usersRequest().header("Cookie", session).build());
+		response = this.rest
+				.get()
+				.uri("/users")
+				.accept(MediaType.APPLICATION_JSON)
+				.header("Cookie", session)
+				.exchange();
 
 		assertThat(response.block(ONE_SECOND).statusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void me() throws Exception {
-		Mono<Map<String,String>> response = this.webClient
+		Mono<Map<String,String>> response = this.rest
 				.filter(robsCredentials())
-				.exchange(meRequest().build())
+				.get()
+				.uri("/me")
+				.exchange()
 				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
 		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
@@ -155,9 +190,11 @@ public class SecurityTests {
 
 	@Test
 	public void principal() throws Exception {
-		Mono<Map<String,String>> response = this.webClient
+		Mono<Map<String,String>> response = this.rest
 				.filter(robsCredentials())
-				.exchange(principalRequest().build())
+				.get()
+				.uri("/principal")
+				.exchange()
 				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
 
 		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
@@ -169,26 +206,6 @@ public class SecurityTests {
 
 	private ExchangeFilterFunction adminCredentials() {
 		return basicAuthentication("admin","admin");
-	}
-
-	private HeadersBuilder<?> adminRequest() {
-		return get("admin");
-	}
-
-	private HeadersBuilder<?> usersRequest() {
-		return get("users");
-	}
-
-	private HeadersBuilder<?>  meRequest() {
-		return get("me");
-	}
-
-	private HeadersBuilder<?>  principalRequest() {
-		return get("principal");
-	}
-
-	private HeadersBuilder<?>  get(String path) {
-		return GET("http://localhost:{port}/{path}", port, path) .accept(MediaType.APPLICATION_JSON);
 	}
 
 	private String base64Encode(String value) {
