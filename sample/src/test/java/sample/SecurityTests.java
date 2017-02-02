@@ -56,7 +56,7 @@ public class SecurityTests {
 		this.rest = WebClient.builder("http://localhost:" + port)
 			.defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
 			.build();
-}
+	}
 
 	@Test
 	public void basicRequired() throws Exception {
