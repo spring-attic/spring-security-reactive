@@ -32,14 +32,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientOperations;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import reactor.core.publisher.Mono;
 
@@ -50,29 +47,22 @@ public class SecurityTests {
 
 	private static final ResolvableType MAP_OF_STRING_STRING = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
 
-	private WebClientOperations rest;
+	private WebClient rest;
 
 	@LocalServerPort
 	private int port;
 
 	@Before
 	public void setup() {
-		WebClient webClient = WebClient
-				.builder(new ReactorClientHttpConnector())
-				.filter((request, next) -> {
-					ClientRequest<Void> json = ClientRequest
-							.from(request)
-							.header("Accept", MediaType.APPLICATION_JSON_VALUE)
-							.build();
-					return next.exchange(json);
-				})
-				.build();
-
-		this.rest = WebClientOperations
-				.builder(webClient)
-				.uriBuilderFactory(new DefaultUriBuilderFactory("http://localhost:"+ port))
-				.build();
-	}
+		this.rest = WebClient.create("http://localhost:" + port)
+	        .filter((request, next) -> {
+	            ClientRequest<Void> json = ClientRequest
+	                    .from(request)
+	                    .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+	                    .build();
+	            return next.exchange(json);
+	        });
+}
 
 	@Test
 	public void basicRequired() throws Exception {

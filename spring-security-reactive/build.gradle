@@ -20,7 +20,7 @@ dependencyManagement {
 
 dependencies {
 	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
-	compile "org.springframework:spring-web-reactive"
+	compile "org.springframework:spring-webflux"
 	compile "org.springframework.security:spring-security-web"
 	testCompile "junit:junit"
 	testCompile 'org.mockito:mockito-core'
