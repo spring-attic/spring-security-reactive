@@ -33,7 +33,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -54,14 +53,9 @@ public class SecurityTests {
 
 	@Before
 	public void setup() {
-		this.rest = WebClient.create("http://localhost:" + port)
-			.filter((request, next) -> {
-				ClientRequest<Void> json = ClientRequest
-						.from(request)
-						.header("Accept", MediaType.APPLICATION_JSON_VALUE)
-						.build();
-				return next.exchange(json);
-			});
+		this.rest = WebClient.builder("http://localhost:" + port)
+			.defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
+			.build();
 }
 
 	@Test
