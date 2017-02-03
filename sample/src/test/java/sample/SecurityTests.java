@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Base64;
@@ -53,11 +54,16 @@ public class SecurityTests {
 
 	@Before
 	public void setup() {
-		this.rest = WebClient.builder("http://localhost:" + port)
+		this.rest = WebClient.builder()
+			.baseUrl("http://localhost:" + port)
 			.defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
 			.build();
 	}
-
+	@Test
+	public void url() throws Exception {
+		URL url = new URL("//google.com/foo");
+		assertThat(url.getHost()).isNotNull();
+	}
 	@Test
 	public void basicRequired() throws Exception {
 		Mono<HttpStatus> response = this.rest
