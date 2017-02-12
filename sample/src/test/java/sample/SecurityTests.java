@@ -33,6 +33,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,143 +47,133 @@ public class SecurityTests {
 
 	private static final ResolvableType MAP_OF_STRING_STRING = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
 
-	private WebClient rest;
+	private WebTestClient rest;
 
 	@LocalServerPort
 	private int port;
 
 	@Before
 	public void setup() {
-		this.rest = WebClient.builder()
-			.baseUrl("http://localhost:" + port)
-			.defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-			.build();
+		this.rest = WebTestClient.bindToServer()
+				.baseUrl("http://localhost:" + this.port)
+				.build();
 	}
 
 	@Test
 	public void basicRequired() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.get()
-				.uri("/users")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
+		this.rest
+			.get()
+			.uri("/users")
+			.exchange()
+			.assertStatus().isUnauthorized();
 	}
 
 	@Test
 	public void basicWorks() throws Exception {
-		Mono<HttpStatus> response =  this.rest
-				.filter(robsCredentials())
-				.get()
-				.uri("/users")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
+		this.rest
+			.filter(robsCredentials())
+			.get()
+			.uri("/users")
+			.exchange()
+			.assertStatus().isOk();
 	}
 
 	@Test
 	public void authorizationAdmin401() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.filter(robsCredentials())
-				.get()
-				.uri("/admin")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
+		this.rest
+			.filter(robsCredentials())
+			.get()
+			.uri("/admin")
+			.exchange()
+			.assertStatus().isUnauthorized();
 	}
 
 	@Test
 	public void authorizationAdmin200() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.filter(adminCredentials())
-				.get()
-				.uri("/admin")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.OK);
+		this.rest
+			.filter(adminCredentials())
+			.get()
+			.uri("/admin")
+			.exchange()
+			.assertStatus().isOk();
 	}
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.filter(basicAuthentication("missing-user", "password"))
-				.get()
-				.uri("/admin")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
+		this.rest
+			.filter(basicAuthentication("missing-user", "password"))
+			.get()
+			.uri("/admin")
+			.exchange()
+			.assertStatus().isUnauthorized();
 	}
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.filter(basicAuthentication("rob", "invalid"))
-				.get()
-				.uri("/admin")
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
+		this.rest
+			.filter(basicAuthentication("rob", "invalid"))
+			.get()
+			.uri("/admin")
+			.exchange()
+			.assertStatus().isUnauthorized();
 	}
 
 	@Test 
 	public void basicInvalidParts401() throws Exception {
-		Mono<HttpStatus> response = this.rest
-				.get()
-				.uri("/admin")
-				.header("Authorization", "Basic " + base64Encode("no colon"))
-				.exchange()
-				.then(this::httpStatus);
-
-		assertThat(response.block(ONE_SECOND)).isEqualTo(HttpStatus.UNAUTHORIZED);
+		this.rest
+			.get()
+			.uri("/admin")
+			.header("Authorization", "Basic " + base64Encode("no colon"))
+			.exchange()
+			.assertStatus().isUnauthorized();
 	}
 
 	@Test
 	public void sessionWorks() throws Exception {
-		Mono<ClientResponse> response = this.rest
+		ClientResponse response = this.rest
 				.filter(robsCredentials())
 				.get()
 				.uri("/users")
-				.exchange();
+				.exchange()
+				.andReturn()
+				.getResponse();
 
-		String session = response.block(ONE_SECOND).headers().asHttpHeaders().getFirst("Set-Cookie");
+		String session = response.headers().asHttpHeaders().getFirst("Set-Cookie");
 
-		response = this.rest
-				.get()
-				.uri("/users")
-				.header("Cookie", session)
-				.exchange();
-
-		assertThat(response.block(ONE_SECOND).statusCode()).isEqualTo(HttpStatus.OK);
+		this.rest
+			.get()
+			.uri("/users")
+			.header("Cookie", session)
+			.exchange()
+			.assertStatus().isOk();
 	}
 
 	@Test
 	public void me() throws Exception {
-		Mono<Map<String,String>> response = this.rest
-				.filter(robsCredentials())
-				.get()
-				.uri("/me")
-				.exchange()
-				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
+		Mono<Map<String,String>> body = this.rest
+			.filter(robsCredentials())
+			.get()
+			.uri("/me")
+			.exchange()
+			.andReturn()
+			.getResponse()
+			.body(toMono(MAP_OF_STRING_STRING));
 
-		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
+		assertThat(body.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
 	}
 
 	@Test
 	public void principal() throws Exception {
-		Mono<Map<String,String>> response = this.rest
+		Mono<Map<String,String>> body = this.rest
 				.filter(robsCredentials())
 				.get()
 				.uri("/principal")
 				.exchange()
-				.then( result -> result.body(toMono(MAP_OF_STRING_STRING)));
+				.andReturn()
+				.getResponse()
+				.body(toMono(MAP_OF_STRING_STRING));
 
-		assertThat(response.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
+			assertThat(body.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
 	}
 
 	private ExchangeFilterFunction robsCredentials() {

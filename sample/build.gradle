@@ -39,5 +39,6 @@ dependencies {
 	compile "de.flapdoodle.embed:de.flapdoodle.embed.mongo"
 	compile "org.springframework.boot:spring-boot-starter-security"
 	testCompile "io.projectreactor.ipc:reactor-netty"
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile "io.projectreactor.addons:reactor-test"
 }
