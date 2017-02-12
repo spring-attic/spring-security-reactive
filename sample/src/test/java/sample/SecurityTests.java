@@ -30,13 +30,10 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ResolvableType;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Mono;
 
@@ -186,9 +183,5 @@ public class SecurityTests {
 
 	private String base64Encode(String value) {
 		return Base64.getEncoder().encodeToString(value.getBytes(Charset.defaultCharset()));
-	}
-
-	private Mono<HttpStatus> httpStatus(ClientResponse response) {
-		return Mono.just(response.statusCode());
 	}
 }
