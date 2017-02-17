@@ -16,12 +16,12 @@
 package sample;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Before;
@@ -30,18 +30,15 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ResolvableType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.ExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-
-import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SecurityTests {
-	private static final Duration ONE_SECOND = Duration.ofSeconds(1);
-
 	private static final ResolvableType MAP_OF_STRING_STRING = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
 
 	private WebTestClient rest;
@@ -58,119 +55,136 @@ public class SecurityTests {
 
 	@Test
 	public void basicRequired() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.get()
 			.uri("/users")
 			.exchange()
-			.assertStatus().isUnauthorized();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicWorks() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.filter(robsCredentials())
 			.get()
 			.uri("/users")
 			.exchange()
-			.assertStatus().isOk();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void authorizationAdmin401() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.filter(robsCredentials())
 			.get()
 			.uri("/admin")
 			.exchange()
-			.assertStatus().isUnauthorized();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void authorizationAdmin200() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.filter(adminCredentials())
 			.get()
 			.uri("/admin")
 			.exchange()
-			.assertStatus().isOk();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void basicMissingUser401() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.filter(basicAuthentication("missing-user", "password"))
 			.get()
 			.uri("/admin")
 			.exchange()
-			.assertStatus().isUnauthorized();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void basicInvalidPassword401() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.filter(basicAuthentication("rob", "invalid"))
 			.get()
 			.uri("/admin")
 			.exchange()
-			.assertStatus().isUnauthorized();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
-	@Test 
+	@Test
 	public void basicInvalidParts401() throws Exception {
-		this.rest
+		ExchangeResult<String> result = this.rest
 			.get()
 			.uri("/admin")
 			.header("Authorization", "Basic " + base64Encode("no colon"))
 			.exchange()
-			.assertStatus().isUnauthorized();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	public void sessionWorks() throws Exception {
-		ClientResponse response = this.rest
+		ExchangeResult<String> result = this.rest
 				.filter(robsCredentials())
 				.get()
 				.uri("/users")
 				.exchange()
-				.andReturn()
-				.getResponse();
+				.decodeEntity(String.class);
 
-		String session = response.headers().asHttpHeaders().getFirst("Set-Cookie");
+		String session = result.getResponseHeaders().getFirst("Set-Cookie");
 
-		this.rest
+		result = this.rest
 			.get()
 			.uri("/users")
 			.header("Cookie", session)
 			.exchange()
-			.assertStatus().isOk();
+			.decodeEntity(String.class);
+
+		assertThat(result.getResponseStatus()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void me() throws Exception {
-		Mono<Map<String,String>> body = this.rest
+		Map<String,String> expected = Collections.singletonMap("username", "rob");
+
+		this.rest
 			.filter(robsCredentials())
 			.get()
 			.uri("/me")
 			.exchange()
-			.andReturn()
-			.getResponse()
-			.body(toMono(MAP_OF_STRING_STRING));
-
-		assertThat(body.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
+			.decodeEntity(MAP_OF_STRING_STRING)
+			.assertThat()
+			.status().isOk()
+			.bodyEquals(expected);
 	}
 
 	@Test
 	public void principal() throws Exception {
-		Mono<Map<String,String>> body = this.rest
+		Map<String,String> expected = Collections.singletonMap("username", "rob");
+
+		this.rest
 				.filter(robsCredentials())
 				.get()
 				.uri("/principal")
 				.exchange()
-				.andReturn()
-				.getResponse()
-				.body(toMono(MAP_OF_STRING_STRING));
-
-			assertThat(body.block(ONE_SECOND)).hasSize(1).containsEntry("username", "rob");
+				.decodeEntity(MAP_OF_STRING_STRING)
+				.assertThat()
+				.status().isOk()
+				.bodyEquals(expected);
 	}
 
 	private ExchangeFilterFunction robsCredentials() {
