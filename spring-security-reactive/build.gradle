@@ -15,6 +15,7 @@ repositories {
 dependencyManagement {
 	imports {
 		mavenBom 'io.spring.platform:platform-bom:Cairo-BUILD-SNAPSHOT'
+		mavenBom 'org.springframework:spring-framework-bom:5.0.0.M5'
 	}
 }
 
