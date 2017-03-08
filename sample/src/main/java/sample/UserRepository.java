@@ -15,21 +15,18 @@
  */
 package sample;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Reactive Repository using Project Reactor types like {@link Flux} and {@link Mono}.
  *
- * @author Mark Paluch
+ * @author Rob Winch
  */
-@NoRepositoryBean
-public interface UserRepository extends ReactiveCrudRepository<User, ObjectId> {
+public interface UserRepository {
+
+	Flux<User> findAll();
 
 	Mono<User> findByUsername(String username);
 
+	Mono<User> save(User user);
 }

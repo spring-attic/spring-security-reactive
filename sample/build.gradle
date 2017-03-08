@@ -1,18 +1,12 @@
 buildscript {
-	ext {
-		springBootVersion = '2.0.0.BUILD-SNAPSHOT'
-	}
 	repositories {
 		maven { url "https://repo.spring.io/libs-snapshot" }
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
 jar {
 	baseName = 'demo'
@@ -27,18 +21,22 @@ repositories {
 
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework.boot.experimental:spring-boot-dependencies-web-reactive:0.1.0.BUILD-SNAPSHOT"
+		mavenBom 'io.spring.platform:platform-bom:Cairo-BUILD-SNAPSHOT'
+		mavenBom 'org.springframework:spring-framework-bom:5.0.0.M5'
 	}
 }
 
 dependencies {
 	compile project(':spring-security-reactive')
-	compile('org.springframework.boot.experimental:spring-boot-starter-web-reactive')
-	compile "org.springframework.boot:spring-boot-starter-data-mongodb"
-	compile "org.mongodb:mongodb-driver-reactivestreams"
-	compile "de.flapdoodle.embed:de.flapdoodle.embed.mongo"
-	compile "org.springframework.boot:spring-boot-starter-security"
+	compile('org.springframework.security:spring-security-core')
+	compile('org.springframework.security:spring-security-config')
+	compile('org.springframework:spring-context')
+	compile('org.springframework:spring-webflux')
+	compile('com.fasterxml.jackson.core:jackson-databind')
+	compile('io.netty:netty-buffer')
 	testCompile "io.projectreactor.ipc:reactor-netty"
-	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile 'junit:junit'
+	testCompile 'org.springframework:spring-test'
+	testCompile 'org.assertj:assertj-core'
 	testCompile "io.projectreactor.addons:reactor-test"
 }

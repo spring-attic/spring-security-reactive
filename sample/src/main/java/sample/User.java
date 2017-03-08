@@ -16,15 +16,9 @@
 
 package sample;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-
-@Document(collection = "users")
 public class User {
 
-	@Id private ObjectId objectId;
+	private Long id;
 	private String username;
 	private String password;
 	private String firstname;
@@ -44,12 +38,12 @@ public class User {
 		this.lastname = lastname;
 	}
 
-	public ObjectId getObjectId() {
-		return objectId;
+	public Long getId() {
+		return id;
 	}
 
-	public void setObjectId(ObjectId objectId) {
-		this.objectId = objectId;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getUsername() {

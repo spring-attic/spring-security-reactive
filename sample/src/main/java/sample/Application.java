@@ -17,25 +17,59 @@
 package sample;
 
 import static org.springframework.security.config.web.server.HttpSecurity.http;
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.*;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.antMatchers;
+import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.anyExchange;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.reactive.HttpHandler;
+import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsAuthenticationManager;
 import org.springframework.security.config.web.server.HttpSecurity;
 import org.springframework.security.web.reactive.result.method.AuthenticationPrincipalArgumentResolver;
+import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.WebFilter;
+
+import reactor.ipc.netty.NettyContext;
+import reactor.ipc.netty.http.server.HttpServer;
 
 /**
  * @author Rob Winch
  */
-@SpringBootApplication
-public class Application {
+@Configuration
+@EnableWebFlux
+@ComponentScan
+public class Application implements WebFluxConfigurer {
+	@Value("${server.port:8080}")
+	private int port = 8080;
 
 	public static void main(String[] args) throws Exception {
-		SpringApplication.run(Application.class, args);
+		try(AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Application.class)) {
+			context.getBean(NettyContext.class).onClose().block();
+		}
+	}
+
+	@Override
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+		resolvers.add(authenticationPrincipalArgumentResolver());
+	}
+
+	@Bean
+	public NettyContext nettyContext(ApplicationContext context) {
+		HttpHandler handler = DispatcherHandler.toHttpHandler(context);
+		ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(handler);
+		HttpServer httpServer = HttpServer.create("localhost", port);
+		return httpServer.newHandler(adapter).block();
 	}
 
 	@Bean

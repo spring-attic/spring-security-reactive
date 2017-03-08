@@ -20,13 +20,8 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Flux;
@@ -36,35 +31,28 @@ import reactor.core.publisher.Flux;
  */
 @RestController
 public class UserController {
-
 	private final UserRepository users;
 
-	@Autowired
 	public UserController(UserRepository users) {
 		this.users = users;
 	}
 
-	@PostMapping(path="/user")
-	public Flux<User> create(@RequestBody Flux<User> userStream) {
-		return this.users.save(userStream);
-	}
-
-	@GetMapping(path="/users")
-	public Flux<User> list() {
-		return this.users.findAll();
-	}
-
-	@RequestMapping("/me")
-	public Map<String,String> me(@AuthenticationPrincipal UserDetails user) {
+	@GetMapping("/me")
+	public Map<String,String> me(@AuthenticationPrincipal User user) {
 		return Collections.singletonMap("username", user.getUsername());
 	}
 
-	@RequestMapping("/principal")
+	@GetMapping("/users")
+	public Flux<User> users() {
+		return this.users.findAll();
+	}
+
+	@GetMapping("/principal")
 	public Map<String,String> principal(Principal principal) {
 		return Collections.singletonMap("username", principal.getName());
 	}
 
-	@RequestMapping("/admin")
+	@GetMapping("/admin")
 	public Map<String,String> admin() {
 		return Collections.singletonMap("isadmin", "true");
 	}
