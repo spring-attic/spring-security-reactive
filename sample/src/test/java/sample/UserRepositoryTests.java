@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 //import org.springframework.boot.test.context.SpringBootTest;
 //import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -40,7 +41,7 @@ import reactor.core.publisher.Mono;
  */
 @SuppressWarnings("unused")
 @RunWith(SpringRunner.class)
-//@SpringBootTest(webEnvironment = WebEnvironment.NONE)
+@ContextConfiguration(classes = Application.class)
 public class UserRepositoryTests {
 
 	@Autowired UserRepository repository;
@@ -53,12 +54,12 @@ public class UserRepositoryTests {
 	}
 
 	@Test
-	public void findByLastnameWhenUsernameMatchesThenFound() {
+	public void findByUsernameWhenUsernameMatchesThenFound() {
 		assertThat(repository.findByUsername(this.rob.getUsername()).block()).isNotNull();
 	}
 
 	@Test
-	public void findByLastnameWhenUsernameDoesNotMatchThenFound() {
+	public void findByUsernameWhenUsernameDoesNotMatchThenFound() {
 		assertThat(repository.findByUsername(this.rob.getUsername() + "NOTFOUND").block()).isNull();
 	}
 }
