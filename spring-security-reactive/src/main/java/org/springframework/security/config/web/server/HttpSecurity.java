@@ -26,6 +26,8 @@ import org.springframework.web.server.WebFilter;
 
 public class HttpSecurity {
 	private AuthorizeRequestBuilder authorizeRequest;
+
+	private HeaderBuilder headers = new HeaderBuilder();
 	private HttpBasicBuilder httpBasic;
 	private ReactiveAuthenticationManager authenticationManager;
 
@@ -36,6 +38,13 @@ public class HttpSecurity {
 			httpBasic = new HttpBasicBuilder();
 		}
 		return httpBasic;
+	}
+
+	public HeaderBuilder headers() {
+		if(headers == null) {
+			headers = new HeaderBuilder();
+		}
+		return headers;
 	}
 
 	public AuthorizeRequestBuilder authorizeRequests() {
@@ -52,6 +61,9 @@ public class HttpSecurity {
 
 	public WebFilter build() {
 		List<WebFilter> filters = new ArrayList<>();
+		if(headers != null) {
+			filters.add(headers.build());
+		}
 		filters.add(securityContextRepositoryWebFilter());
 		if(httpBasic != null) {
 			httpBasic.authenticationManager(authenticationManager);
