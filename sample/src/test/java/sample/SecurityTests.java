@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -165,7 +166,7 @@ public class SecurityTests {
 	}
 
 	@Test
-	public void cacheControl() throws Exception {
+	public void headers() throws Exception {
 		this.rest
 				.filter(robsCredentials())
 				.get()
@@ -173,7 +174,8 @@ public class SecurityTests {
 				.exchange()
 				.expectHeader().valueEquals(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate")
 				.expectHeader().valueEquals(HttpHeaders.EXPIRES, "0")
-				.expectHeader().valueEquals(HttpHeaders.PRAGMA, "no-cache");
+				.expectHeader().valueEquals(HttpHeaders.PRAGMA, "no-cache")
+				.expectHeader().valueEquals(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS, ContentTypeOptionsHttpHeadersWriter.NOSNIFF);
 	}
 
 	private ExchangeFilterFunction robsCredentials() {

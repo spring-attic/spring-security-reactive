@@ -15,12 +15,21 @@
  */
 package org.springframework.security.config.web.server;
 
+import java.util.Arrays;
+
 import org.springframework.security.web.server.CacheControlHttpHeadersWriter;
+import org.springframework.security.web.server.CompositeHttpHeadersWriter;
+import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
 import org.springframework.security.web.server.HttpHeaderWriterWebFilter;
+import org.springframework.security.web.server.HttpHeadersWriter;
 
 public class HeaderBuilder {
+	private CacheControlHttpHeadersWriter cacheControl = new CacheControlHttpHeadersWriter();
+
+	private ContentTypeOptionsHttpHeadersWriter contentType = new ContentTypeOptionsHttpHeadersWriter();
 
 	public HttpHeaderWriterWebFilter build() {
-		return new HttpHeaderWriterWebFilter(new CacheControlHttpHeadersWriter());
+		HttpHeadersWriter writer = new CompositeHttpHeadersWriter(Arrays.asList(cacheControl, contentType));
+		return new HttpHeaderWriterWebFilter(writer);
 	}
 }
