@@ -22,14 +22,17 @@ import org.springframework.security.web.server.CompositeHttpHeadersWriter;
 import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
 import org.springframework.security.web.server.HttpHeaderWriterWebFilter;
 import org.springframework.security.web.server.HttpHeadersWriter;
+import org.springframework.security.web.server.StrictTransportSecurityHttpHeadersWriter;
 
 public class HeaderBuilder {
 	private CacheControlHttpHeadersWriter cacheControl = new CacheControlHttpHeadersWriter();
 
 	private ContentTypeOptionsHttpHeadersWriter contentType = new ContentTypeOptionsHttpHeadersWriter();
 
+	private StrictTransportSecurityHttpHeadersWriter hsts = new StrictTransportSecurityHttpHeadersWriter();
+
 	public HttpHeaderWriterWebFilter build() {
-		HttpHeadersWriter writer = new CompositeHttpHeadersWriter(Arrays.asList(cacheControl, contentType));
+		HttpHeadersWriter writer = new CompositeHttpHeadersWriter(Arrays.asList(cacheControl, contentType, hsts));
 		return new HttpHeaderWriterWebFilter(writer);
 	}
 }
