@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 //import org.springframework.boot.test.context.SpringBootTest;
 //import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -42,6 +43,7 @@ import reactor.core.publisher.Mono;
 @SuppressWarnings("unused")
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = Application.class)
+@TestPropertySource(properties = "server.port=0")
 public class UserRepositoryTests {
 
 	@Autowired UserRepository repository;
