@@ -17,8 +17,6 @@ package org.springframework.security.web.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -42,9 +40,10 @@ public class CacheControlHttpHeadersWriterTests {
 	public void writeHeadersWhenCacheHeadersThenWritesAllCacheControl() {
 		writer.writeHttpHeaders(exchange);
 
-		assertThat(headers).containsEntry(HttpHeaders.CACHE_CONTROL, Arrays.asList("no-cache, no-store, max-age=0, must-revalidate"));
-		assertThat(headers).containsEntry(HttpHeaders.EXPIRES, Arrays.asList("0"));
-		assertThat(headers).containsEntry(HttpHeaders.PRAGMA, Arrays.asList("no-cache"));
+		assertThat(headers).hasSize(3);
+		assertThat(headers.get(HttpHeaders.CACHE_CONTROL)).containsOnly(CacheControlHttpHeadersWriter.CACHE_CONTRTOL_VALUE);
+		assertThat(headers.get(HttpHeaders.EXPIRES)).containsOnly(CacheControlHttpHeadersWriter.EXPIRES_VALUE);
+		assertThat(headers.get(HttpHeaders.PRAGMA)).containsOnly(CacheControlHttpHeadersWriter.PRAGMA_VALUE);
 	}
 
 	@Test
@@ -55,9 +54,7 @@ public class CacheControlHttpHeadersWriterTests {
 
 		writer.writeHttpHeaders(exchange);
 
-		assertThat(headers).containsEntry(HttpHeaders.CACHE_CONTROL, Arrays.asList(cacheControl));
-		assertThat(headers).doesNotContainKey(HttpHeaders.EXPIRES);
-		assertThat(headers).doesNotContainKey(HttpHeaders.PRAGMA);
+		assertThat(headers.get(HttpHeaders.CACHE_CONTROL)).containsOnly(cacheControl);
 	}
 
 	@Test
@@ -67,9 +64,8 @@ public class CacheControlHttpHeadersWriterTests {
 
 		writer.writeHttpHeaders(exchange);
 
-		assertThat(headers).containsEntry(HttpHeaders.PRAGMA, Arrays.asList(pragma));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CACHE_CONTROL);
-		assertThat(headers).doesNotContainKey(HttpHeaders.EXPIRES);
+		assertThat(headers).hasSize(1);
+		assertThat(headers.get(HttpHeaders.PRAGMA)).containsOnly(pragma);
 	}
 
 	@Test
@@ -79,9 +75,8 @@ public class CacheControlHttpHeadersWriterTests {
 
 		writer.writeHttpHeaders(exchange);
 
-		assertThat(headers).containsEntry(HttpHeaders.EXPIRES, Arrays.asList(expires));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CACHE_CONTROL);
-		assertThat(headers).doesNotContainKey(HttpHeaders.PRAGMA);
+		assertThat(headers).hasSize(1);
+		assertThat(headers.get(HttpHeaders.EXPIRES)).containsOnly(expires);
 	}
 
 }

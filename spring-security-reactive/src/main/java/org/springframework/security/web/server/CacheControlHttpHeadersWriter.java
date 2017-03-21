@@ -27,6 +27,19 @@ import reactor.core.publisher.Mono;
  */
 public class CacheControlHttpHeadersWriter implements HttpHeadersWriter {
 
+	/**
+	 *
+	 */
+	public static final String EXPIRES_VALUE = "0";
+	/**
+	 *
+	 */
+	public static final String PRAGMA_VALUE = "no-cache";
+	/**
+	 *
+	 */
+	public static final String CACHE_CONTRTOL_VALUE = "no-cache, no-store, max-age=0, must-revalidate";
+
 	@Override
 	public Mono<Void> writeHttpHeaders(ServerWebExchange exchange) {
 		HttpHeaders headers = exchange.getResponse().getHeaders();
@@ -37,9 +50,9 @@ public class CacheControlHttpHeadersWriter implements HttpHeadersWriter {
 			return Mono.empty();
 		}
 
-		headers.set(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");
-		headers.set(HttpHeaders.PRAGMA, "no-cache");
-		headers.set(HttpHeaders.EXPIRES, "0");
+		headers.set(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE);
+		headers.set(HttpHeaders.PRAGMA, PRAGMA_VALUE);
+		headers.set(HttpHeaders.EXPIRES, EXPIRES_VALUE);
 		return Mono.empty();
 	}
 
