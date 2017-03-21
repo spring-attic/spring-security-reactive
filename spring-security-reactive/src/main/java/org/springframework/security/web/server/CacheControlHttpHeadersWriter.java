@@ -42,20 +42,18 @@ public class CacheControlHttpHeadersWriter implements HttpHeadersWriter {
 	 */
 	public static final String CACHE_CONTRTOL_VALUE = "no-cache, no-store, max-age=0, must-revalidate";
 
+	/**
+	 * The delegate to write all the cache control related headers
+	 */
+	private static final HttpHeadersWriter CACHE_HEADERS = StaticHttpHeadersWriter.builder()
+			.header(HttpHeaders.CACHE_CONTROL, CacheControlHttpHeadersWriter.CACHE_CONTRTOL_VALUE)
+			.header(HttpHeaders.PRAGMA,  CacheControlHttpHeadersWriter.PRAGMA_VALUE)
+			.header(HttpHeaders.EXPIRES,  CacheControlHttpHeadersWriter.EXPIRES_VALUE)
+			.build();
+
 	@Override
 	public Mono<Void> writeHttpHeaders(ServerWebExchange exchange) {
-		HttpHeaders headers = exchange.getResponse().getHeaders();
-
-		if(headers.containsKey(HttpHeaders.EXPIRES) ||
-				headers.containsKey(HttpHeaders.PRAGMA) ||
-				headers.containsKey(HttpHeaders.CACHE_CONTROL)) {
-			return Mono.empty();
-		}
-
-		headers.set(HttpHeaders.CACHE_CONTROL, CACHE_CONTRTOL_VALUE);
-		headers.set(HttpHeaders.PRAGMA, PRAGMA_VALUE);
-		headers.set(HttpHeaders.EXPIRES, EXPIRES_VALUE);
-		return Mono.empty();
+		return CACHE_HEADERS.writeHttpHeaders(exchange);
 	}
 
 }
