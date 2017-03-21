@@ -28,15 +28,17 @@ import reactor.core.publisher.Mono;
 public class CacheControlHttpHeadersWriter implements HttpHeadersWriter {
 
 	/**
-	 *
+	 * The value for expires value
 	 */
 	public static final String EXPIRES_VALUE = "0";
+
 	/**
-	 *
+	 * The value for pragma value
 	 */
 	public static final String PRAGMA_VALUE = "no-cache";
+
 	/**
-	 *
+	 * The value for cache control value
 	 */
 	public static final String CACHE_CONTRTOL_VALUE = "no-cache, no-store, max-age=0, must-revalidate";
 
