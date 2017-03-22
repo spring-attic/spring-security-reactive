@@ -15,7 +15,6 @@
  */
 package org.springframework.security.web.server;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
@@ -32,11 +31,17 @@ public class ContentTypeOptionsHttpHeadersWriter implements HttpHeadersWriter {
 
 	public static final String NOSNIFF = "nosniff";
 
+
+	/**
+	 * The delegate to write all the cache control related headers
+	 */
+	private static final HttpHeadersWriter CONTENT_TYPE_HEADERS = StaticHttpHeadersWriter.builder()
+			.header(X_CONTENT_OPTIONS, NOSNIFF)
+			.build();
+
 	@Override
 	public Mono<Void> writeHttpHeaders(ServerWebExchange exchange) {
-		HttpHeaders headers = exchange.getResponse().getHeaders();
-		headers.set(X_CONTENT_OPTIONS, NOSNIFF);
-		return Mono.empty();
+		return CONTENT_TYPE_HEADERS.writeHttpHeaders(exchange);
 	}
 
 }

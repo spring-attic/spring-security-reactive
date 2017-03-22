@@ -36,10 +36,21 @@ public class ContentTypeOptionsHttpHeadersWriterTests {
 	HttpHeaders headers = exchange.getResponse().getHeaders();
 
 	@Test
-	public void writeHeadersThenSuccess() {
+	public void writeHeadersWhenNoHeadersThenWriteHeaders() {
 		writer.writeHttpHeaders(exchange);
 
-		assertThat(headers.getFirst(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS)).isEqualTo(ContentTypeOptionsHttpHeadersWriter.NOSNIFF);
+		assertThat(headers).hasSize(1);
+		assertThat(headers.get(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS)).containsOnly(ContentTypeOptionsHttpHeadersWriter.NOSNIFF);
 	}
 
+	@Test
+	public void writeHeadersWhenHeaderWrittenThenDoesNotOverrride() {
+		String headerValue = "value";
+		headers.set(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS, headerValue);
+
+		writer.writeHttpHeaders(exchange);
+
+		assertThat(headers).hasSize(1);
+		assertThat(headers.get(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS)).containsOnly(headerValue);
+	}
 }
