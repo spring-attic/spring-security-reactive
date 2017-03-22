@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.web.server;
+package org.springframework.security.web.server.header;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +27,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
+import org.springframework.security.web.server.CompositeHttpHeadersWriter;
+import org.springframework.security.web.server.HttpHeadersWriter;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;

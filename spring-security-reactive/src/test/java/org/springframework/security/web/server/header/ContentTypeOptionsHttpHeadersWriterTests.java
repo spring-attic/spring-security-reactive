@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.web.server;
+package org.springframework.security.web.server.header;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
+import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
