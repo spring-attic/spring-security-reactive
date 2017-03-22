@@ -15,6 +15,7 @@
  */
 package org.springframework.security.web.server;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +31,10 @@ import reactor.core.publisher.Mono;
  */
 public class CompositeHttpHeadersWriter implements HttpHeadersWriter {
 	private final List<HttpHeadersWriter> writers;
+
+	public CompositeHttpHeadersWriter(HttpHeadersWriter... writers) {
+		this(Arrays.asList(writers));
+	}
 
 	public CompositeHttpHeadersWriter(List<HttpHeadersWriter> writers) {
 		this.writers = writers;
