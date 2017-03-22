@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
  * @author Rob Winch
  * @since 5.0
  */
-public class ContentTypeOptionsHttpHeadersWriter implements HttpHeadersWriter {
+public class XContentTypeOptionsHttpHeadersWriter implements HttpHeadersWriter {
 
 	public static final String X_CONTENT_OPTIONS = "X-Content-Options";
 

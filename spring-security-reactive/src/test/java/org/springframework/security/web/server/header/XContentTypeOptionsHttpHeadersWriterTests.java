@@ -28,7 +28,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Rob Winch
  * @since 5.0
  */
-public class ContentTypeOptionsHttpHeadersWriterTests {
+public class XContentTypeOptionsHttpHeadersWriterTests {
 
 	ContentTypeOptionsHttpHeadersWriter writer = new ContentTypeOptionsHttpHeadersWriter();
 
