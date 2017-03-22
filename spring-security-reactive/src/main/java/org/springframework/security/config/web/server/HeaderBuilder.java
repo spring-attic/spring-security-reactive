@@ -15,8 +15,6 @@
  */
 package org.springframework.security.config.web.server;
 
-import java.util.Arrays;
-
 import org.springframework.security.web.server.CacheControlHttpHeadersWriter;
 import org.springframework.security.web.server.CompositeHttpHeadersWriter;
 import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
@@ -24,6 +22,7 @@ import org.springframework.security.web.server.HttpHeaderWriterWebFilter;
 import org.springframework.security.web.server.HttpHeadersWriter;
 import org.springframework.security.web.server.StrictTransportSecurityHttpHeadersWriter;
 import org.springframework.security.web.server.XFrameOptionsHttpHeadersWriter;
+import org.springframework.security.web.server.header.XXssProtectionHttpHeadersWriter;
 
 public class HeaderBuilder {
 	private CacheControlHttpHeadersWriter cacheControl = new CacheControlHttpHeadersWriter();
@@ -34,8 +33,10 @@ public class HeaderBuilder {
 
 	private XFrameOptionsHttpHeadersWriter frameOptions = new XFrameOptionsHttpHeadersWriter();
 
+	private XXssProtectionHttpHeadersWriter xss = new XXssProtectionHttpHeadersWriter();
+
 	public HttpHeaderWriterWebFilter build() {
-		HttpHeadersWriter writer = new CompositeHttpHeadersWriter(Arrays.asList(cacheControl, contentType, hsts, frameOptions));
+		HttpHeadersWriter writer = new CompositeHttpHeadersWriter(cacheControl, contentType, hsts, frameOptions , xss);
 		return new HttpHeaderWriterWebFilter(writer);
 	}
 }
