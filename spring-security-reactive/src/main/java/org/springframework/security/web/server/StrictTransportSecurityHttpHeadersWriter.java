@@ -17,7 +17,6 @@ package org.springframework.security.web.server;
 
 import java.time.Duration;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
@@ -26,26 +25,51 @@ import reactor.core.publisher.Mono;
  * @author Rob Winch
  * @since 5.0
  */
-public class StrictTransportSecurityHttpHeadersWriter implements HttpHeadersWriter {
+public final class StrictTransportSecurityHttpHeadersWriter implements HttpHeadersWriter {
 	public static final String STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
 
-	private Duration maxAge = Duration.ofDays(365L);
+	private String maxAge;
 
-	private boolean includeSubDomains = true;
+	private String subdomain;
+
+	private HttpHeadersWriter delegate;
+
+	/**
+	 *
+	 */
+	public StrictTransportSecurityHttpHeadersWriter() {
+		setIncludeSubDomains(true);
+		setMaxAge(Duration.ofDays(365L));
+		updateDelegate();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.security.web.server.HttpHeadersWriter#writeHttpHeaders(org.springframework.http.HttpHeaders)
 	 */
 	@Override
 	public Mono<Void> writeHttpHeaders(ServerWebExchange exchange) {
-		String scheme = exchange.getRequest().getURI().getScheme();
-		boolean isSecure = scheme != null && scheme.equalsIgnoreCase("https");
-		if(isSecure) {
-			HttpHeaders headers = exchange.getResponse().getHeaders();
-			String subdomain = includeSubDomains ? " ; includeSubDomains" : "";
-			headers.set(STRICT_TRANSPORT_SECURITY, "max-age=" + maxAge.getSeconds() + subdomain);
-		}
-		return Mono.empty();
+		return isSecure(exchange) ? delegate.writeHttpHeaders(exchange) : Mono.empty();
 	}
 
+	public void setIncludeSubDomains(boolean includeSubDomains) {
+		subdomain = includeSubDomains ? " ; includeSubDomains" : "";
+		updateDelegate();
+	}
+
+	public void setMaxAge(Duration maxAge) {
+		this.maxAge = "max-age=" + maxAge.getSeconds();
+		updateDelegate();
+	}
+
+	private void updateDelegate() {
+		delegate = StaticHttpHeadersWriter.builder()
+				.header(STRICT_TRANSPORT_SECURITY, maxAge + subdomain)
+				.build();
+	}
+
+	private boolean isSecure(ServerWebExchange exchange) {
+		String scheme = exchange.getRequest().getURI().getScheme();
+		boolean isSecure = scheme != null && scheme.equalsIgnoreCase("https");
+		return isSecure;
+	}
 }
