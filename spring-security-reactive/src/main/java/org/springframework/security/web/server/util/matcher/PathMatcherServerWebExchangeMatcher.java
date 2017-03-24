@@ -48,20 +48,28 @@ public final class PathMatcherServerWebExchangeMatcher implements ServerWebExcha
 	public MatchResult matches(ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		if(this.method != null && !this.method.equals(request.getMethod())) {
-			return MatchResult.NO_MATCH;
+			return MatchResult.notMatch();
 		}
 		String path = helper.getLookupPathForRequest(exchange);
 		boolean match = pathMatcher.match(pattern, path);
 		if(!match) {
-			return MatchResult.NO_MATCH;
+			return MatchResult.notMatch();
 		}
 		Map<String,String> pathVariables = pathMatcher.extractUriTemplateVariables(pattern, path);
 		Map<String,Object> variables = new HashMap<>(pathVariables);
-		return new MatchResult(match, variables);
+		return MatchResult.match(variables);
 	}
 
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "pathMatcher cannot be null");
 		this.pathMatcher = pathMatcher;
+	}
+
+	@Override
+	public String toString() {
+		return "PathMatcherServerWebExchangeMatcher{" +
+				"pattern='" + pattern + '\'' +
+				", method=" + method +
+				'}';
 	}
 }
