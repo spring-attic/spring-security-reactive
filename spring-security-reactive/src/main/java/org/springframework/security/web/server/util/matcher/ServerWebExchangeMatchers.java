@@ -15,26 +15,43 @@
  */
 package org.springframework.security.web.server.util.matcher;
 
-import java.util.Collections;
-
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
-public abstract class ServerWebExchangeMatchers {
-	private static final MatchResult ANY_MATCH = new MatchResult(true, Collections.emptyMap());
+import java.util.ArrayList;
+import java.util.List;
 
-	public static ServerWebExchangeMatcher antMatchers(String pattern) {
-		return new PathMatcherServerWebExchangeMatcher(pattern);
+/**
+ * @author Rob Winch
+ * @since 5.0
+ */
+public abstract class ServerWebExchangeMatchers {
+
+	public static ServerWebExchangeMatcher antMatchers(HttpMethod method, String... patterns) {
+		List<ServerWebExchangeMatcher> matchers = new ArrayList<>(patterns.length);
+		for (String pattern : patterns) {
+			matchers.add(new PathMatcherServerWebExchangeMatcher(pattern, method));
+		}
+		return new OrServerWebExchangeMatcher(matchers);
+	}
+
+	public static ServerWebExchangeMatcher antMatchers(String... patterns) {
+		return antMatchers(null, patterns);
+	}
+
+	public static ServerWebExchangeMatcher matchers(ServerWebExchangeMatcher... matchers) {
+		return new OrServerWebExchangeMatcher(matchers);
 	}
 
 	public static ServerWebExchangeMatcher anyExchange() {
 		return new ServerWebExchangeMatcher() {
 			@Override
 			public MatchResult matches(ServerWebExchange exchange) {
-				return ANY_MATCH;
+				return MatchResult.match();
 			}
 		};
 	}
 
-	private ServerWebExchangeMatchers() {}
+	private ServerWebExchangeMatchers() {
+	}
 }
