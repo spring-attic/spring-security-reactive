@@ -23,12 +23,15 @@ import org.springframework.security.web.server.access.expression.ServerWebExchan
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.server.WebFilter;
 
-public class AuthorizeRequestBuilder {
+import java.util.List;
+
+public class AuthorizeRequestBuilder extends AbstractServerWebExchangeMatcherRegistry<AuthorizeRequestBuilder.Access> {
 	private Builder metadataSource = ServerWebExchangeMetadataSource.builder();
 	private ExpressionReactiveAccessDecisionManager manager = new ExpressionReactiveAccessDecisionManager();
 	private ServerWebExchangeMatcher matcher;
 
-	public Access matchers(ServerWebExchangeMatcher matcher) {
+	@Override
+	protected Access registerMatcher(ServerWebExchangeMatcher matcher) {
 		this.matcher = matcher;
 		return new Access();
 	}
@@ -40,22 +43,24 @@ public class AuthorizeRequestBuilder {
 	}
 
 	public final class Access {
-		private Access() {}
-
-		public AuthorizeRequestBuilder hasRole(String role) {
-			return access("hasRole('"+ role +"')");
+		
+		public void permitAll() {
+			access("permitAll");
 		}
 
-		public AuthorizeRequestBuilder authenticated() {
-			return access("authenticated");
+		public void hasRole(String role) {
+			access("hasRole('"+ role +"')");
 		}
 
-		public AuthorizeRequestBuilder access(String configAttr) {
+		public void authenticated() {
+			access("authenticated");
+		}
+
+		public void access(String configAttr) {
 			SecurityConfig config = new SecurityConfig(configAttr);
 			metadataSource.add(matcher, config);
 			matcher = null;
 			config = null;
-			return AuthorizeRequestBuilder.this;
 		}
 	}
 }
