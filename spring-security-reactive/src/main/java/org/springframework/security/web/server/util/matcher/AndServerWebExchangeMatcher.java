@@ -53,4 +53,10 @@ public class AndServerWebExchangeMatcher implements ServerWebExchangeMatcher {
 			.allMatch(m -> m.isMatch()) ? MatchResult.match(variables) : MatchResult.notMatch();
 	}
 
+	@Override
+	public String toString() {
+		return "AndServerWebExchangeMatcher{" +
+				"matchers=" + matchers +
+				'}';
+	}
 }
