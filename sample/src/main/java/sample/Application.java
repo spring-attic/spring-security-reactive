@@ -16,12 +16,6 @@
 
 package sample;
 
-import static org.springframework.security.config.web.server.HttpSecurity.http;
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.antMatchers;
-import static org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.anyExchange;
-
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -32,6 +26,7 @@ import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsAuthenticationManager;
+import org.springframework.security.config.web.server.AuthorizeRequestBuilder;
 import org.springframework.security.config.web.server.HttpSecurity;
 import org.springframework.security.web.reactive.result.method.AuthenticationPrincipalArgumentResolver;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -39,9 +34,12 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.WebFilter;
-
 import reactor.ipc.netty.NettyContext;
 import reactor.ipc.netty.http.server.HttpServer;
+
+import java.util.List;
+
+import static org.springframework.security.config.web.server.HttpSecurity.http;
 
 /**
  * @author Rob Winch
@@ -83,9 +81,10 @@ public class Application implements WebFluxConfigurer {
 		// FIXME use BeanPostProcessor to set the manager
 		http.authenticationManager(manager);
 		http.httpBasic();
-		http.authorizeRequests()
-				.matchers(antMatchers("/admin/**")).hasRole("ADMIN")
-				.matchers(anyExchange()).authenticated();
+
+		AuthorizeRequestBuilder authorize = http.authorizeRequests();
+		authorize.antMatchers("/admin/**").hasRole("ADMIN");
+		authorize.anyExchange().authenticated();
 		return http.build();
 	}
 
