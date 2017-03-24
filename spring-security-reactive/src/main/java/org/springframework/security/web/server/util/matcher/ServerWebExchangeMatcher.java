@@ -30,12 +30,10 @@ public interface ServerWebExchangeMatcher {
 	MatchResult matches(ServerWebExchange exchange);
 
 	class MatchResult {
-		public static final MatchResult NO_MATCH = new MatchResult(false, Collections.emptyMap());
-
 		private final boolean match;
 		private final Map<String,Object> variables;
 
-		public MatchResult(boolean match, Map<String, Object> variables) {
+		private MatchResult(boolean match, Map<String, Object> variables) {
 			this.match = match;
 			this.variables = variables;
 		}
@@ -46,6 +44,18 @@ public interface ServerWebExchangeMatcher {
 
 		public Map<String,Object> getVariables() {
 			return variables;
+		}
+
+		public static MatchResult match() {
+			return match(Collections.emptyMap());
+		}
+
+		public static MatchResult match(Map<String,Object> variables) {
+			return new MatchResult(true, variables);
+		}
+
+		public static MatchResult notMatch() {
+			return new MatchResult(false, Collections.emptyMap());
 		}
 	}
 }
