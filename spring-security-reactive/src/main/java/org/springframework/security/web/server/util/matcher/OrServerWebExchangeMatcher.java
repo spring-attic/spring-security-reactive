@@ -51,4 +51,10 @@ public class OrServerWebExchangeMatcher implements ServerWebExchangeMatcher {
 			.orElse(MatchResult.notMatch());
 	}
 
+	@Override
+	public String toString() {
+		return "OrServerWebExchangeMatcher{" +
+				"matchers=" + matchers +
+				'}';
+	}
 }
