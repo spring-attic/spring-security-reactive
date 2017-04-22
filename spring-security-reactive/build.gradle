@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'io.spring.dependency-management'
 
 jar {
-	baseName = 'spring-reactive-security'
+	baseName = 'spring-security-reactive'
 	version = '0.0.1-SNAPSHOT'
 }
 

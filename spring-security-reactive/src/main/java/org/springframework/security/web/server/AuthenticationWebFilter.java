@@ -48,24 +48,14 @@ public class AuthenticationWebFilter implements WebFilter {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		return authenticationConverter.convert(exchange)
-			.then( token -> {
-				return authenticationManager.authenticate(token)
-					.then(authentication -> {
-						SecurityContext context = new SecurityContextImpl();
-						context.setAuthentication(authentication);
-						return securityContextRepository
-							.save(exchange, context)
-							.then( () ->{
-								return chain.filter(exchange);
-							});
-					})
-					.otherwise( AuthenticationException.class, t -> {
-						return entryPoint.commence(exchange, t);
-					});
-			})
-			.otherwiseIfEmpty(Mono.defer(() -> {
-				return chain.filter(exchange);
-			}));
+                .then(token -> authenticationManager.authenticate(token)
+                        .then(authentication -> {
+                            SecurityContext context = new SecurityContextImpl();
+                            context.setAuthentication(authentication);
+                            return securityContextRepository.save(exchange, context);
+                        })
+                        .otherwise(AuthenticationException.class, t -> entryPoint.commence(exchange, t)))
+			    .then(Mono.defer(() -> chain.filter(exchange)));
 	}
 
 	public void setSecurityContextRepository(WebSessionSecurityContextRepository securityContextRepository) {
