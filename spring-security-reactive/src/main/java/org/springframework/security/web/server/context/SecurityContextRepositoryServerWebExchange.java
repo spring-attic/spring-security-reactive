@@ -35,7 +35,7 @@ public final class SecurityContextRepositoryServerWebExchange extends ServerWebE
 	public <T extends Principal> Mono<T> getPrincipal() {
 		return this.repository.load(getDelegate())
 			.filter( c -> c.getAuthentication() != null)
-			.then( c -> {
+			.flatMap( c -> {
 				return Mono.just( (T) c.getAuthentication());
 			});
 	}

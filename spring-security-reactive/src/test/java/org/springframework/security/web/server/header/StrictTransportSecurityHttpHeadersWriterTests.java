@@ -23,7 +23,6 @@ import java.util.Arrays;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.security.web.server.StrictTransportSecurityHttpHeadersWriter;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -38,7 +37,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 
 	@Test
 	public void writeHttpHeadersWhenHttpsThenWrites() {
-		exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("https://example.com/"));
+		exchange = MockServerHttpRequest.get("https://example.com/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 
@@ -52,7 +51,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 	public void writeHttpHeadersWhenCustomMaxAgeThenWrites() {
 		Duration maxAge = Duration.ofDays(1);
 		hsts.setMaxAge(maxAge);
-		exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("https://example.com/"));
+		exchange = MockServerHttpRequest.get("https://example.com/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 
@@ -65,7 +64,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 	@Test
 	public void writeHttpHeadersWhenCustomIncludeSubDomainsThenWrites() {
 		hsts.setIncludeSubDomains(false);
-		exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("https://example.com/"));
+		exchange = MockServerHttpRequest.get("https://example.com/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 
@@ -77,7 +76,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 
 	@Test
 	public void writeHttpHeadersWhenNullSchemeThenNoHeaders() {
-		exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+		exchange = MockServerHttpRequest.get("/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 
@@ -87,7 +86,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 
 	@Test
 	public void writeHttpHeadersWhenHttpThenNoHeaders() {
-		exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("http://example.com/"));
+		exchange = MockServerHttpRequest.get("http://example.com/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 

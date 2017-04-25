@@ -53,20 +53,20 @@ public class AuthorizationWebFilter implements WebFilter {
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		return exchange.getPrincipal()
 			.filter(p -> p instanceof Authentication)
-			.then( p-> Mono.just((Authentication) p))
+			.flatMap( p-> Mono.just((Authentication) p))
 			.filter(authentication -> {
 				return authentication != null && authentication.isAuthenticated();
 			})
-			.then(authentication -> {
+			.flatMap(authentication -> {
 				return source.getConfigAttributes(exchange).as( (Function<? super Flux<ConfigAttribute>, Mono<Boolean>>) a -> {
 					return accessDecisionManager.decide(authentication, exchange, a);
 				});
 			})
 			.filter(t -> t)
-			.otherwiseIfEmpty(Mono.defer(() -> {
+			.switchIfEmpty(Mono.defer(() -> {
 				return entryPoint.commence(exchange, new AuthenticationCredentialsNotFoundException("Not Found"));
 			}))
-			.then(sc -> {
+			.flatMap(sc -> {
 				return chain.filter(exchange);
 			});
 	}

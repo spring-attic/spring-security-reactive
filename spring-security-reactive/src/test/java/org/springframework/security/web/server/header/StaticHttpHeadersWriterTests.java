@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.security.web.server.CacheControlHttpHeadersWriter;
 import org.springframework.security.web.server.ContentTypeOptionsHttpHeadersWriter;
 import org.springframework.security.web.server.StaticHttpHeadersWriter;
@@ -36,7 +35,7 @@ public class StaticHttpHeadersWriterTests {
 			.header(ContentTypeOptionsHttpHeadersWriter.X_CONTENT_OPTIONS, ContentTypeOptionsHttpHeadersWriter.NOSNIFF)
 			.build();
 
-	ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+	ServerWebExchange exchange = MockServerHttpRequest.get("/").toExchange();
 
 	HttpHeaders headers = exchange.getResponse().getHeaders();
 

@@ -32,12 +32,10 @@ import org.springframework.security.web.reactive.result.method.AuthenticationPri
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
-import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
+import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 import org.springframework.web.server.WebFilter;
 import reactor.ipc.netty.NettyContext;
 import reactor.ipc.netty.http.server.HttpServer;
-
-import java.util.List;
 
 import static org.springframework.security.config.web.server.HttpSecurity.http;
 
@@ -58,8 +56,8 @@ public class Application implements WebFluxConfigurer {
 	}
 
 	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(authenticationPrincipalArgumentResolver());
+	public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
+		configurer.addCustomResolver(authenticationPrincipalArgumentResolver());
 	}
 
 	@Bean

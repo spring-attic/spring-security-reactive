@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -28,7 +27,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @since 5.0
  */
 public class XXssProtectionHttpHeadersWriterTests {
-	ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+	ServerWebExchange exchange = MockServerHttpRequest.get("/").toExchange();
 
 	HttpHeaders headers = exchange.getResponse().getHeaders();
 

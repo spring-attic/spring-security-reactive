@@ -18,15 +18,10 @@
 
 package org.springframework.security.web.server.util.matcher;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -40,7 +35,7 @@ import static org.springframework.security.web.server.util.matcher.ServerWebExch
  * @since 5.0
  */
 public class ServerWebExchangeMatchersTests {
-	ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+	ServerWebExchange exchange = MockServerHttpRequest.get("/").toExchange();
 
 	@Test
 	public void antMatchersWhenSingleAndSamePatternThenMatches() throws Exception {

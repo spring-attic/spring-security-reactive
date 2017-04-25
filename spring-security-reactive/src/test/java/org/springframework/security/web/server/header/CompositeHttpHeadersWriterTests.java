@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.security.web.server.CompositeHttpHeadersWriter;
 import org.springframework.security.web.server.HttpHeadersWriter;
 import org.springframework.web.server.ServerWebExchange;
@@ -49,7 +48,7 @@ public class CompositeHttpHeadersWriterTests {
 
 	CompositeHttpHeadersWriter writer;
 
-	ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+	ServerWebExchange exchange = MockServerHttpRequest.get("/").toExchange();
 
 	@Before
 	public void setup() {

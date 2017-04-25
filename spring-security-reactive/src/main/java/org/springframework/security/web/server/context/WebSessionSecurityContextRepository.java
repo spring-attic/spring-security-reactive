@@ -36,7 +36,7 @@ public class WebSessionSecurityContextRepository implements SecurityContextRepos
 	}
 
 	public Mono<SecurityContext> load(ServerWebExchange exchange) {
-		return exchange.getSession().then( session -> {
+		return exchange.getSession().flatMap( session -> {
 			SecurityContext context = (SecurityContext) session.getAttributes().get(SESSION_ATTR);
 			return context == null ? Mono.empty() : Mono.just(context);
 		});

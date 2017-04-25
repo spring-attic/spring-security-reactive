@@ -22,7 +22,7 @@ repositories {
 dependencyManagement {
 	imports {
 		mavenBom 'io.spring.platform:platform-bom:Cairo-BUILD-SNAPSHOT'
-		mavenBom 'org.springframework:spring-framework-bom:5.0.0.M5'
+		mavenBom 'org.springframework:spring-framework-bom:5.0.0.BUILD-SNAPSHOT'
 	}
 }
 
@@ -38,5 +38,6 @@ dependencies {
 	testCompile 'junit:junit'
 	testCompile 'org.springframework:spring-test'
 	testCompile 'org.assertj:assertj-core'
+	testCompile 'org.skyscreamer:jsonassert'
 	testCompile "io.projectreactor.addons:reactor-test"
 }

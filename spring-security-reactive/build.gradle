@@ -15,16 +15,17 @@ repositories {
 dependencyManagement {
 	imports {
 		mavenBom 'io.spring.platform:platform-bom:Cairo-BUILD-SNAPSHOT'
-		mavenBom 'org.springframework:spring-framework-bom:5.0.0.M5'
+		mavenBom 'org.springframework:spring-framework-bom:5.0.0.BUILD-SNAPSHOT'
 	}
 }
 
 dependencies {
 	compile "org.springframework.boot.experimental:spring-boot-starter-web-reactive:0.1.0.BUILD-SNAPSHOT"
 	compile "org.springframework:spring-webflux"
-	compile "org.springframework.security:spring-security-web"
+	compile "org.springframework.security:spring-security-web:5.0.0.BUILD-SNAPSHOT"
 	testCompile "junit:junit"
 	testCompile 'org.mockito:mockito-core'
 	testCompile "org.springframework:spring-test"
 	testCompile "org.assertj:assertj-core"
+	testCompile "io.projectreactor.addons:reactor-test"
 }

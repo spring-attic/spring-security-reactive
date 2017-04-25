@@ -127,7 +127,7 @@ public class SecurityTests {
 				.get()
 				.uri("/users")
 				.exchange()
-				.returnResult();
+				.returnResult(String.class);
 
 		String session = result.getResponseHeaders().getFirst("Set-Cookie");
 
@@ -141,28 +141,24 @@ public class SecurityTests {
 
 	@Test
 	public void me() throws Exception {
-		Map<String,String> expected = Collections.singletonMap("username", "rob");
-
 		this.rest
 			.filter(robsCredentials())
 			.get()
 			.uri("/me")
 			.exchange()
 			.expectStatus().isOk()
-			.expectBody().map(String.class, String.class).isEqualTo(expected);
+			.expectBody().json("{\"username\" : \"rob\"}");
 	}
 
 	@Test
 	public void principal() throws Exception {
-		Map<String,String> expected = Collections.singletonMap("username", "rob");
-
 		this.rest
 				.filter(robsCredentials())
 				.get()
 				.uri("/principal")
 				.exchange()
 				.expectStatus().isOk()
-				.expectBody().map(String.class, String.class).isEqualTo(expected);
+				.expectBody().json("{\"username\" : \"rob\"}");
 	}
 
 	@Test

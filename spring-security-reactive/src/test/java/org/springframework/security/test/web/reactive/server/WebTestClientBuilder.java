@@ -42,7 +42,7 @@ import reactor.core.publisher.Mono;
 public class WebTestClientBuilder {
 
 	public static Builder bindToWebFilters(WebFilter... webFilters) {
-		return WebTestClient.bindToApplicationContext(applicationContext(webFilters));
+		return WebTestClient.bindToApplicationContext(applicationContext(webFilters)).configureClient();
 	}
 
 	private static ApplicationContext applicationContext(WebFilter... webFilters) {

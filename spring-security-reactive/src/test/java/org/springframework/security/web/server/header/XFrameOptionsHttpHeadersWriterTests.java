@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.security.test.web.reactive.server.ServerWebExchangeBuilders;
 import org.springframework.security.web.server.XFrameOptionsHttpHeadersWriter;
 import org.springframework.security.web.server.XFrameOptionsHttpHeadersWriter.Mode;
 import org.springframework.web.server.ServerWebExchange;
@@ -32,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class XFrameOptionsHttpHeadersWriterTests {
 
-	ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(MockServerHttpRequest.get("/"));
+	ServerWebExchange exchange = MockServerHttpRequest.get("/").toExchange();
 
 	XFrameOptionsHttpHeadersWriter writer;
 

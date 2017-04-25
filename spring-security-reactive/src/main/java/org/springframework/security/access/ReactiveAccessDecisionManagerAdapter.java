@@ -50,7 +50,7 @@ public class ReactiveAccessDecisionManagerAdapter implements ReactiveAccessDecis
 				Authentication auth = t.getT1();
 				return auth != null && auth.isAuthenticated();
 			})
-			.then((Function<Tuple3<Authentication, Object, Flux<ConfigAttribute>>, Mono<Boolean>>) t -> {
+			.flatMap((Function<Tuple3<Authentication, Object, Flux<ConfigAttribute>>, Mono<Boolean>>) t -> {
 				List<ConfigAttribute> attrs = new ArrayList<>();
 				t.getT3().toIterable().forEach(attrs::add);
 

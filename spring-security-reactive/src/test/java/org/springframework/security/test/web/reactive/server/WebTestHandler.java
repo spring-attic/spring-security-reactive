@@ -23,6 +23,8 @@ import org.springframework.web.server.handler.FilteringWebHandler;
 
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+
 /**
  *
  * @author Rob Winch
@@ -36,7 +38,7 @@ public class WebTestHandler {
 	}
 
 	public WebHandlerResult exchange(BaseBuilder<?> baseBuilder) {
-		ServerWebExchange exchange = ServerWebExchangeBuilders.toExchange(baseBuilder);
+		ServerWebExchange exchange = baseBuilder.toExchange();
 		handler.handle(exchange);
 		return new WebHandlerResult(exchange);
 	}
@@ -54,6 +56,6 @@ public class WebTestHandler {
 	}
 
 	public static WebTestHandler bindToWebFilters(WebFilter... filters) {
-		return new WebTestHandler(new FilteringWebHandler(exchange -> Mono.empty(), filters));
+		return new WebTestHandler(new FilteringWebHandler(exchange -> Mono.empty(), Arrays.asList(filters)));
 	}
 }
