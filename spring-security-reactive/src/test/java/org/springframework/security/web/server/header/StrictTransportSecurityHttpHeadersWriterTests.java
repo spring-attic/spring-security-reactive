@@ -86,7 +86,7 @@ public class StrictTransportSecurityHttpHeadersWriterTests {
 
 	@Test
 	public void writeHttpHeadersWhenHttpThenNoHeaders() {
-		exchange = MockServerHttpRequest.get("http://example.com/").toExchange();
+		exchange = MockServerHttpRequest.get("https://example.com/").toExchange();
 
 		hsts.writeHttpHeaders(exchange);
 
